@@ -361,10 +361,11 @@ namespace App_thi_tin_hoc.Controllers
                 return View(submission);
             }
 
-            // Get historical max score before this evaluation
+            // Get historical max score before this evaluation in the same session
             var maxPastScore = await _context.Submissions
                 .Where(s => s.AccountId == submission.AccountId && 
                             s.ProblemId == submission.ProblemId && 
+                            s.SessionGroup == submission.SessionGroup &&
                             s.Id != submission.Id &&
                             (s.Status == "Accepted" || s.Status == "Wrong Answer" || s.Status == "Submitted"))
                 .Select(s => s.Score)

@@ -39,9 +39,10 @@ namespace App_thi_tin_hoc.Controllers
 
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            // Get the best submission status for each problem for this user
+            // Get the best submission status for each problem for this user in the current session
+            var currentSession = contest.CurrentSession ?? "Đợt mặc định";
             var userBestSubmissions = await _context.Submissions
-                .Where(s => s.AccountId == userId && s.ContestId == id)
+                .Where(s => s.AccountId == userId && s.ContestId == id && s.SessionGroup == currentSession)
                 .GroupBy(s => s.ProblemId)
                 .Select(g => new
                 {
@@ -73,10 +74,11 @@ namespace App_thi_tin_hoc.Controllers
             var sampleTestcases = problem.Testcases.Where(t => t.IsSample).ToList();
             ViewBag.SampleTestcases = sampleTestcases;
 
-            // Fetch last submission code for convenience
+            // Fetch last submission code for convenience in the current session
+            var currentSession = problem.Contest?.CurrentSession ?? "Đợt mặc định";
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var lastSubmission = await _context.Submissions
-                .Where(s => s.AccountId == userId && s.ProblemId == id)
+                .Where(s => s.AccountId == userId && s.ProblemId == id && s.SessionGroup == currentSession)
                 .OrderByDescending(s => s.SubmittedAt)
                 .FirstOrDefaultAsync();
 

@@ -316,7 +316,7 @@ namespace App_thi_tin_hoc.Services
                         submission.Score = submission.Problem.Points;
                         submission.Feedback = $"🏆 TUYỆT VỜI! Bài làm hoàn toàn chính xác ({passedCount}/{testcases.Count} testcase).\n\n" + feedbackBuilder.ToString();
 
-                        await UpdateStudentPointsAsync(submission.AccountId, submission.ProblemId, submission.Problem.Points, dbContext);
+                        await UpdateStudentPointsAsync(submission.AccountId, submission.ProblemId, submission.SessionGroup ?? "Đợt mặc định", submission.Problem.Points, dbContext);
                     }
                     else
                     {
@@ -326,7 +326,7 @@ namespace App_thi_tin_hoc.Services
                         submission.Score = computedScore;
                         submission.Feedback = $"🌟 Hãy cố gắng lên! Đúng {passedCount}/{testcases.Count} testcase. Đạt {computedScore} điểm.\n\n" + feedbackBuilder.ToString();
 
-                        await UpdateStudentPointsAsync(submission.AccountId, submission.ProblemId, computedScore, dbContext);
+                        await UpdateStudentPointsAsync(submission.AccountId, submission.ProblemId, submission.SessionGroup ?? "Đợt mặc định", computedScore, dbContext);
                     }
                 }
                 catch (Exception ex)
@@ -520,7 +520,7 @@ namespace App_thi_tin_hoc.Services
                         submission.Score = submission.Problem.Points;
                         submission.Feedback = $"🏆 TUYỆT VỜI! Bài làm hoàn toàn chính xác ({passedCount}/{testcases.Count} testcase).\n\n" + feedbackBuilder.ToString();
 
-                        await UpdateStudentPointsAsync(submission.AccountId, submission.ProblemId, submission.Problem.Points, dbContext);
+                        await UpdateStudentPointsAsync(submission.AccountId, submission.ProblemId, submission.SessionGroup ?? "Đợt mặc định", submission.Problem.Points, dbContext);
                     }
                     else
                     {
@@ -530,7 +530,7 @@ namespace App_thi_tin_hoc.Services
                         submission.Score = computedScore;
                         submission.Feedback = $"🌟 Hãy cố gắng lên! Đúng {passedCount}/{testcases.Count} testcase. Đạt {computedScore} điểm.\n\n" + feedbackBuilder.ToString();
 
-                        await UpdateStudentPointsAsync(submission.AccountId, submission.ProblemId, computedScore, dbContext);
+                        await UpdateStudentPointsAsync(submission.AccountId, submission.ProblemId, submission.SessionGroup ?? "Đợt mặc định", computedScore, dbContext);
                     }
                 }
                 catch (Exception ex)
@@ -554,11 +554,11 @@ namespace App_thi_tin_hoc.Services
             }
         }
 
-        private async Task UpdateStudentPointsAsync(int accountId, int problemId, int newScore, Data.ApplicationDbContext dbContext)
+        private async Task UpdateStudentPointsAsync(int accountId, int problemId, string sessionGroup, int newScore, Data.ApplicationDbContext dbContext)
         {
-            // Find current highest score for this problem by this user (excluding the current submission)
+            // Find current highest score for this problem by this user in the same session group (excluding the current submission)
             var pastScores = await dbContext.Submissions
-                .Where(s => s.AccountId == accountId && s.ProblemId == problemId && s.Status != "Judging" && s.Status != "Pending")
+                .Where(s => s.AccountId == accountId && s.ProblemId == problemId && s.SessionGroup == sessionGroup && s.Status != "Judging" && s.Status != "Pending")
                 .Select(s => s.Score)
                 .ToListAsync();
             var maxPastScore = pastScores.Any() ? pastScores.Max() : 0;
