@@ -59,6 +59,9 @@
                                             <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#startContestModal-@contest.Id">
                                                 <i class="fa-solid fa-play"></i> Khởi động đợt mới
                                             </button>
+                                            <a asp-action="ContestReport" asp-route-contestId="@contest.Id" class="btn btn-sm btn-outline-success">
+                                                <i class="fa-solid fa-file-excel"></i> Xem báo cáo
+                                            </a>
                                             <a asp-action="Problems" asp-route-contestId="@contest.Id" class="btn btn-sm btn-outline-primary">
                                                 <i class="fa-solid fa-file-invoice"></i> Quản lý đề bài
                                             </a>

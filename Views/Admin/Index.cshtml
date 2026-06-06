@@ -30,6 +30,9 @@
                 <a asp-action="Students" class="btn-kids btn-accent-kids">
                     <i class="fa-solid fa-user-graduate"></i> Quản Lý Tài Khoản Học Sinh
                 </a>
+                <a asp-action="ContestsReportList" class="btn-kids btn-success-kids">
+                    <i class="fa-solid fa-file-excel"></i> Báo Cáo & Thành Tích
+                </a>
                 @if (isSuper)
                 {
                     <a asp-action="Teachers" class="btn-kids btn-danger-kids">
@@ -116,7 +119,7 @@
                 </div>
             }
             <div class="col-xl col-md-4 col-sm-6 mb-3">
-                <a href="#recent-submissions" class="text-decoration-none d-block h-100">
+                <a asp-action="Submissions" class="text-decoration-none d-block h-100">
                     <div class="card-kids p-3 text-center h-100 card-hover-accent" style="border-left: 5px solid var(--color-accent); cursor: pointer;">
                         <div class="text-muted small mb-1">Tổng số bài nộp</div>
                         <div class="fs-2 fw-bold text-warning mb-2">@ViewBag.SubmissionCount</div>

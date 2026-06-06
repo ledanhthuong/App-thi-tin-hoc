@@ -1,0 +1,49 @@
+@using App_thi_tin_hoc.Models
+@model List<Contest>
+@{
+    ViewData["Title"] = "Báo Cáo Thành Tích";
+}
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary mb-0"><i class="fa-solid fa-file-excel text-success"></i> Báo Cáo & Thành Tích</h2>
+            <a asp-action="Index" class="btn-kids btn-secondary-kids">
+                <i class="fa-solid fa-arrow-left"></i> Quay lại
+            </a>
+        </div>
+
+        <div class="card-kids p-4">
+            <p class="text-muted fs-5 mb-4">Chọn một kỳ thi bên dưới để xem chi tiết bảng điểm, thứ hạng của học sinh theo từng đợt thi và xuất dữ liệu ra Excel.</p>
+
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <p class="text-muted fs-5">Chưa có kỳ thi nào diễn ra để lập báo cáo.</p>
+                </div>
+            }
+            else
+            {
+                <div class="d-flex flex-column gap-3">
+                    @foreach (var contest in Model)
+                    {
+                        <div class="p-3 border rounded-3 d-flex flex-wrap justify-content-between align-items-center card-hover-primary" style="background-color: hsl(220, 40%, 99%); transition: all 0.2s;">
+                            <div class="mb-2 mb-md-0">
+                                <h4 class="text-primary mb-1 fw-bold">@contest.Title</h4>
+                                <div class="d-flex gap-3 text-muted small">
+                                    <span><i class="fa-solid fa-book-open"></i> @contest.Problems.Count Đề bài</span>
+                                    <span><i class="fa-solid fa-calendar-day"></i> Bắt đầu: @contest.StartTime.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                </div>
+                            </div>
+                            <div>
+                                <a asp-action="ContestReport" asp-route-contestId="@contest.Id" class="btn-kids btn-primary-kids m-0 px-4 py-2" style="font-size: 0.95rem;">
+                                    <i class="fa-solid fa-chart-line"></i> Xem Bảng Điểm <i class="fa-solid fa-chevron-right fs-7 ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

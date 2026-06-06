@@ -1,0 +1,131 @@
+@using App_thi_tin_hoc.Models
+@using App_thi_tin_hoc.Controllers
+@model List<StudentReportRow>
+@{
+    var contest = ViewBag.Contest as Contest ?? new Contest();
+    var sessions = ViewBag.Sessions as List<string> ?? new List<string>();
+    var selectedSession = ViewBag.SelectedSession as string ?? "";
+    ViewData["Title"] = "Bảng Điểm Kỳ Thi: " + contest.Title;
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+            <div>
+                <a asp-action="ContestsReportList" class="btn-kids btn-secondary-kids mb-2" style="padding: 6px 16px; font-size: 0.9rem;">
+                    <i class="fa-solid fa-arrow-left"></i> Chọn Kỳ Thi Khác
+                </a>
+                <h2 class="text-primary mt-1 mb-0"><i class="fa-solid fa-ranking-star"></i> Bảng Thành Tích: @contest.Title</h2>
+            </div>
+            <div class="d-flex gap-2">
+                <a asp-action="ExportContestReport" asp-route-contestId="@contest.Id" asp-route-session="@selectedSession" class="btn-kids btn-accent-kids m-0 px-4 py-3 wiggle-hover">
+                    <i class="fa-solid fa-file-excel fs-5"></i> Xuất Excel (.CSV)
+                </a>
+            </div>
+        </div>
+
+        <div class="card-kids p-4 mb-4">
+            <!-- Filter Bar -->
+            <form asp-action="ContestReport" method="get" class="row align-items-center g-3">
+                <input type="hidden" name="contestId" value="@contest.Id" />
+                <div class="col-md-5">
+                    <label class="form-label fw-bold text-primary"><i class="fa-solid fa-filter"></i> Lọc theo Đợt thi:</label>
+                    <select name="session" class="form-select" onchange="this.form.submit()" style="border: 2px solid hsl(220, 30%, 85%); border-radius: var(--border-radius-md); padding: 10px;">
+                        @foreach (var s in sessions)
+                        {
+                            if (s == selectedSession)
+                            {
+                                <option value="@s" selected>@s</option>
+                            }
+                            else
+                            {
+                                <option value="@s">@s</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-7 text-md-end pt-md-4">
+                    <span class="badge bg-light text-dark border p-2 fs-6">Đợt thi hiện tại: <strong>@selectedSession</strong></span>
+                </div>
+            </form>
+        </div>
+
+        <div class="card-kids p-4">
+            <h3 class="text-primary mt-0 mb-4"><i class="fa-solid fa-table"></i> Bảng Kết Quả Chi Tiết</h3>
+
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <p class="text-muted fs-5">Không tìm thấy tài khoản học sinh nào trên hệ thống.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered align-middle">
+                        <thead>
+                            <tr class="table-primary text-center">
+                                <th style="width: 70px;">Hạng</th>
+                                <th class="text-start">Tên học sinh</th>
+                                <th class="text-start">Tên đăng nhập</th>
+                                @foreach (var problem in contest.Problems)
+                                {
+                                    <th>
+                                        <div class="fw-bold">@problem.Title</div>
+                                        <small class="text-muted">Max: @problem.Points điểm</small>
+                                    </th>
+                                }
+                                <th class="table-success" style="width: 140px;">Tổng điểm</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int rank = 1;
+                                foreach (var row in Model)
+                                {
+                                    <tr>
+                                        <td class="text-center">
+                                            @if (rank == 1)
+                                            {
+                                                <span class="badge bg-warning text-dark fs-6 p-2 rounded-circle shadow-sm" style="width: 35px; height: 35px; display: inline-flex; align-items: center; justify-content: center;">1</span>
+                                            }
+                                            else if (rank == 2)
+                                            {
+                                                <span class="badge bg-light text-dark border border-secondary fs-6 p-2 rounded-circle" style="width: 35px; height: 35px; display: inline-flex; align-items: center; justify-content: center;">2</span>
+                                            }
+                                            else if (rank == 3)
+                                            {
+                                                <span class="badge bg-danger text-white fs-6 p-2 rounded-circle" style="width: 35px; height: 35px; display: inline-flex; align-items: center; justify-content: center;">3</span>
+                                            }
+                                            else
+                                            {
+                                                <span>@rank</span>
+                                            }
+                                        </td>
+                                        <td><strong>@row.FullName</strong></td>
+                                        <td><code class="fs-6">@row.Username</code></td>
+                                        @foreach (var pScore in row.ProblemScores)
+                                        {
+                                            <td class="text-center">
+                                                @if (pScore.Score > 0)
+                                                {
+                                                    <span class="badge bg-success p-2 fs-6">@pScore.Score</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                        }
+                                        <td class="text-center table-success fw-bold text-success fs-5">@row.TotalScore</td>
+                                    </tr>
+                                    rank++;
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

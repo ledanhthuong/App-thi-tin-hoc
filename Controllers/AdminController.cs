@@ -1602,5 +1602,287 @@ namespace App_thi_tin_hoc.Controllers
             public string Status { get; set; } = ""; // Success, Fail, Blocked
             public string Detail { get; set; } = "";
         }
+
+        // --- ADMIN REPORTS & LEADERBOARD ACTIONS ---
+        [HttpGet]
+        public async Task<IActionResult> ContestsReportList()
+        {
+            var currentUsername = User.Identity?.Name;
+            var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Username == currentUsername);
+            if (account == null || account.Role != "Teacher")
+            {
+                return Forbid();
+            }
+
+            var contests = await _context.Contests
+                .Include(c => c.Problems)
+                .OrderByDescending(c => c.StartTime)
+                .ToListAsync();
+
+            return View(contests);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ContestReport(int contestId, string? session)
+        {
+            var currentUsername = User.Identity?.Name;
+            var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Username == currentUsername);
+            if (account == null || account.Role != "Teacher")
+            {
+                return Forbid();
+            }
+
+            var contest = await _context.Contests
+                .Include(c => c.Problems)
+                .FirstOrDefaultAsync(c => c.Id == contestId);
+
+            if (contest == null)
+            {
+                return NotFound();
+            }
+
+            // All unique sessions for this contest
+            var sessions = await _context.Submissions
+                .Where(s => s.ContestId == contestId)
+                .Select(s => s.SessionGroup)
+                .Distinct()
+                .Where(s => !string.IsNullOrEmpty(s))
+                .ToListAsync();
+
+            if (!string.IsNullOrEmpty(contest.CurrentSession) && !sessions.Contains(contest.CurrentSession))
+            {
+                sessions.Add(contest.CurrentSession);
+            }
+
+            if (string.IsNullOrEmpty(session))
+            {
+                session = contest.CurrentSession ?? "Đợt mặc định";
+            }
+
+            var students = await _context.Accounts
+                .Where(a => a.Role == "Student")
+                .ToListAsync();
+
+            var submissions = await _context.Submissions
+                .Where(s => s.ContestId == contestId && s.SessionGroup == session)
+                .ToListAsync();
+
+            var studentScores = new Dictionary<int, Dictionary<int, int>>();
+            foreach (var sub in submissions)
+            {
+                if (!studentScores.ContainsKey(sub.AccountId))
+                {
+                    studentScores[sub.AccountId] = new Dictionary<int, int>();
+                }
+                var problemScores = studentScores[sub.AccountId];
+                if (!problemScores.ContainsKey(sub.ProblemId) || sub.Score > problemScores[sub.ProblemId])
+                {
+                    problemScores[sub.ProblemId] = sub.Score;
+                }
+            }
+
+            var rows = students.Select(st =>
+            {
+                var scoresMap = studentScores.ContainsKey(st.Id) ? studentScores[st.Id] : new Dictionary<int, int>();
+                var problemScoresList = contest.Problems.Select(p => new ProblemScoreDto
+                {
+                    ProblemId = p.Id,
+                    Score = scoresMap.ContainsKey(p.Id) ? scoresMap[p.Id] : 0
+                }).ToList();
+
+                int totalScore = problemScoresList.Sum(ps => ps.Score);
+
+                return new StudentReportRow
+                {
+                    StudentId = st.Id,
+                    Username = st.Username,
+                    FullName = st.FullName,
+                    ProblemScores = problemScoresList,
+                    TotalScore = totalScore
+                };
+            })
+            .OrderByDescending(r => r.TotalScore)
+            .ToList();
+
+            ViewBag.Contest = contest;
+            ViewBag.Sessions = sessions.OrderByDescending(s => s).ToList();
+            ViewBag.SelectedSession = session;
+
+            return View(rows);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportContestReport(int contestId, string? session)
+        {
+            var currentUsername = User.Identity?.Name;
+            var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Username == currentUsername);
+            if (account == null || account.Role != "Teacher")
+            {
+                return Forbid();
+            }
+
+            var contest = await _context.Contests
+                .Include(c => c.Problems)
+                .FirstOrDefaultAsync(c => c.Id == contestId);
+
+            if (contest == null)
+            {
+                return NotFound();
+            }
+
+            if (string.IsNullOrEmpty(session))
+            {
+                session = contest.CurrentSession ?? "Đợt mặc định";
+            }
+
+            var students = await _context.Accounts
+                .Where(a => a.Role == "Student")
+                .ToListAsync();
+
+            var submissions = await _context.Submissions
+                .Where(s => s.ContestId == contestId && s.SessionGroup == session)
+                .ToListAsync();
+
+            var studentScores = new Dictionary<int, Dictionary<int, int>>();
+            foreach (var sub in submissions)
+            {
+                if (!studentScores.ContainsKey(sub.AccountId))
+                {
+                    studentScores[sub.AccountId] = new Dictionary<int, int>();
+                }
+                var problemScores = studentScores[sub.AccountId];
+                if (!problemScores.ContainsKey(sub.ProblemId) || sub.Score > problemScores[sub.ProblemId])
+                {
+                    problemScores[sub.ProblemId] = sub.Score;
+                }
+            }
+
+            var rows = students.Select(st =>
+            {
+                var scoresMap = studentScores.ContainsKey(st.Id) ? studentScores[st.Id] : new Dictionary<int, int>();
+                var problemScoresList = contest.Problems.Select(p => scoresMap.ContainsKey(p.Id) ? scoresMap[p.Id] : 0).ToList();
+                int totalScore = problemScoresList.Sum();
+
+                return new
+                {
+                    st.Username,
+                    st.FullName,
+                    ProblemScores = problemScoresList,
+                    TotalScore = totalScore
+                };
+            })
+            .OrderByDescending(r => r.TotalScore)
+            .ToList();
+
+            var sb = new System.Text.StringBuilder();
+            
+            // Header
+            var headers = new List<string> { "Hang", "Ten dang nhap", "Ho va ten" };
+            foreach (var p in contest.Problems)
+            {
+                headers.Add($"{p.Title} ({p.Points}d)");
+            }
+            headers.Add("Tong diem");
+            sb.AppendLine(string.Join(",", headers.Select(h => $"\"{h.Replace("\"", "\"\"")}\"")));
+
+            // Data rows
+            int rank = 1;
+            foreach (var row in rows)
+            {
+                var line = new List<string>
+                {
+                    rank.ToString(),
+                    row.Username,
+                    row.FullName
+                };
+                foreach (var score in row.ProblemScores)
+                {
+                    line.Add(score.ToString());
+                }
+                line.Add(row.TotalScore.ToString());
+                sb.AppendLine(string.Join(",", line.Select(item => $"\"{item.Replace("\"", "\"\"")}\"")));
+                rank++;
+            }
+
+            var csvBytes = System.Text.Encoding.UTF8.GetPreamble().Concat(System.Text.Encoding.UTF8.GetBytes(sb.ToString())).ToArray();
+            var cleanTitle = new string(contest.Title.Where(c => char.IsLetterOrDigit(c) || c == ' ' || c == '-').ToArray()).Replace(" ", "_");
+            var cleanSession = new string((session ?? "Dot").Where(c => char.IsLetterOrDigit(c) || c == ' ' || c == '-').ToArray()).Replace(" ", "_");
+            var fileName = $"ThanhTich_{cleanTitle}_{cleanSession}.csv";
+            return File(csvBytes, "text/csv; charset=utf-8", fileName);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Submissions(int? contestId, string? session, string? searchStudent, string? statusFilter)
+        {
+            var currentUsername = User.Identity?.Name;
+            var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Username == currentUsername);
+            if (account == null || account.Role != "Teacher")
+            {
+                return Forbid();
+            }
+
+            var query = _context.Submissions
+                .Include(s => s.Problem)
+                .Include(s => s.Contest)
+                .Include(s => s.Account)
+                .AsQueryable();
+
+            if (contestId.HasValue && contestId.Value > 0)
+            {
+                query = query.Where(s => s.ContestId == contestId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(session))
+            {
+                query = query.Where(s => s.SessionGroup == session.Trim());
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchStudent))
+            {
+                var term = searchStudent.Trim().ToLower();
+                query = query.Where(s => s.Account != null && 
+                                        (s.Account.Username.ToLower().Contains(term) || 
+                                         s.Account.FullName.ToLower().Contains(term)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(statusFilter))
+            {
+                query = query.Where(s => s.Status == statusFilter);
+            }
+
+            var submissions = await query
+                .OrderByDescending(s => s.SubmittedAt)
+                .ToListAsync();
+
+            ViewBag.Contests = await _context.Contests.OrderByDescending(c => c.StartTime).ToListAsync();
+            ViewBag.Sessions = await _context.Submissions
+                .Select(s => s.SessionGroup)
+                .Distinct()
+                .Where(s => !string.IsNullOrEmpty(s))
+                .OrderByDescending(s => s)
+                .ToListAsync();
+
+            ViewBag.SelectedContestId = contestId;
+            ViewBag.SelectedSession = session;
+            ViewBag.SearchStudent = searchStudent;
+            ViewBag.SelectedStatus = statusFilter;
+
+            return View(submissions);
+        }
+    }
+
+    public class StudentReportRow
+    {
+        public int StudentId { get; set; }
+        public string Username { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
+        public List<ProblemScoreDto> ProblemScores { get; set; } = new List<ProblemScoreDto>();
+        public int TotalScore { get; set; }
+    }
+
+    public class ProblemScoreDto
+    {
+        public int ProblemId { get; set; }
+        public int Score { get; set; }
     }
 }
