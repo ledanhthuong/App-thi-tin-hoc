@@ -198,9 +198,18 @@ a:hover {
     margin-bottom: 24px;
 }
 .card-kids:hover {
-    transform: translateY(-5px);
     border-color: var(--color-primary);
     box-shadow: var(--shadow-lg);
+}
+
+/* Clickable/interactive cards that should lift up on hover */
+.card-kids-interactive:hover,
+.card-hover-primary:hover,
+.card-hover-secondary:hover,
+.card-hover-success:hover,
+.card-hover-danger:hover,
+.card-hover-accent:hover {
+    transform: translateY(-5px);
 }
 
 .card-header-kids {
