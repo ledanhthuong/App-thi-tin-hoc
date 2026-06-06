@@ -89,6 +89,9 @@ namespace App_thi_tin_hoc.Controllers
             if (!await CheckIsSuperAdminAsync()) return Forbid();
             if (ModelState.IsValid)
             {
+                // Convert StartTime and EndTime from local (Vietnam UTC+7) to UTC before saving
+                contest.StartTime = contest.StartTime.AddHours(-7);
+                contest.EndTime = contest.EndTime.AddHours(-7);
                 _context.Contests.Add(contest);
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = "Tạo kỳ thi mới thành công!";
@@ -106,6 +109,9 @@ namespace App_thi_tin_hoc.Controllers
             {
                 return NotFound();
             }
+            // Convert from UTC to local (Vietnam UTC+7) for the HTML datetime-local picker
+            contest.StartTime = contest.StartTime.AddHours(7);
+            contest.EndTime = contest.EndTime.AddHours(7);
             return View(contest);
         }
 
@@ -124,8 +130,9 @@ namespace App_thi_tin_hoc.Controllers
 
                 existing.Title = contest.Title;
                 existing.Description = contest.Description;
-                existing.StartTime = contest.StartTime;
-                existing.EndTime = contest.EndTime;
+                // Convert local (Vietnam UTC+7) input back to UTC for saving
+                existing.StartTime = contest.StartTime.AddHours(-7);
+                existing.EndTime = contest.EndTime.AddHours(-7);
                 existing.ShowCodeHints = contest.ShowCodeHints;
 
                 _context.Entry(existing).State = EntityState.Modified;
@@ -133,6 +140,9 @@ namespace App_thi_tin_hoc.Controllers
                 TempData["SuccessMessage"] = "Cập nhật kỳ thi thành công!";
                 return RedirectToAction(nameof(Contests));
             }
+            // If invalid, keep it in local time for display in the view
+            contest.StartTime = contest.StartTime.AddHours(7);
+            contest.EndTime = contest.EndTime.AddHours(7);
             return View(contest);
         }
 
