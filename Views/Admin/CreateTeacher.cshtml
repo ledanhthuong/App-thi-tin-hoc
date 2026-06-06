@@ -1,0 +1,53 @@
+@{
+    ViewData["Title"] = "Thêm Giáo Viên Mới";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="banner-kids p-4 mb-4" style="background: linear-gradient(135deg, var(--color-danger), var(--color-danger-hover));">
+            <h1 class="text-white mb-2"><i class="fa-solid fa-user-plus"></i> Thêm Giáo Viên Mới</h1>
+            <p class="text-white-50">Tạo tài khoản giáo viên mới để hỗ trợ quản lý lớp học và các kỳ thi trên hệ thống.</p>
+        </div>
+
+        <div class="card-kids p-4">
+            <form method="post" asp-action="CreateTeacher" class="form-kids">
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-kids alert-danger-kids alert-dismissible fade show" role="alert">
+                        <i class="fa-solid fa-circle-xmark me-2"></i>
+                        <strong>Đã có lỗi xảy ra:</strong>
+                        <div asp-validation-summary="All" class="mt-2 text-danger small"></div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <div class="mb-3">
+                    <label for="username">Tên đăng nhập (Username) <span class="text-danger">*</span></label>
+                    <input type="text" id="username" name="username" class="form-control" placeholder="Ví dụ: giaovien2" required />
+                    <div class="form-text text-muted small mt-1">
+                        <i class="fa-solid fa-circle-info"></i> Hệ thống tự động chuyển thành chữ thường, loại bỏ dấu và ký tự đặc biệt (chỉ giữ lại chữ cái, chữ số và dấu gạch dưới).
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="fullName">Họ và tên giáo viên <span class="text-danger">*</span></label>
+                    <input type="text" id="fullName" name="fullName" class="form-control" placeholder="Ví dụ: Nguyễn Thị Mai" required />
+                </div>
+
+                <div class="mb-4">
+                    <label for="password">Mật khẩu truy cập</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Nhập mật khẩu (Nếu để trống, hệ thống sẽ tự động tạo ngẫu nhiên)" />
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end">
+                    <a asp-action="Students" class="btn btn-outline-secondary d-inline-flex align-items-center" style="border-radius: var(--border-radius-md); padding: 10px 24px; font-family: var(--font-heading); font-size: 1.1rem;">
+                        Hủy bỏ
+                    </a>
+                    <button type="submit" class="btn-kids btn-danger-kids m-0">
+                        <i class="fa-solid fa-floppy-disk"></i> Tạo Giáo Viên
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

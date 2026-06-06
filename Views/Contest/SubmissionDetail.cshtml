@@ -1,0 +1,119 @@
+@using App_thi_tin_hoc.Models
+@model Submission
+@{
+    ViewData["Title"] = "Chi Tiết Bài Nộp #" + Model.Id;
+    
+    var statusClass = Model.Status switch
+    {
+        "Accepted" => "status-ac",
+        "Wrong Answer" => "status-wa",
+        "Pending" => "status-pending",
+        "Judging" => "status-judging",
+        "Compile Error" => "status-ce",
+        _ => "status-pending"
+    };
+
+    var statusText = Model.Status switch
+    {
+        "Accepted" => "Chính xác ✅",
+        "Wrong Answer" => "Chưa đúng ❌",
+        "Pending" => "Đang chờ ⏳",
+        "Judging" => "Đang chấm... 🤖",
+        "Compile Error" => "Lỗi biên dịch 📝",
+        "Submitted" => "Đã nhận (Chờ GV) 📑",
+        _ => Model.Status
+    };
+}
+
+<div class="row">
+    <div class="col-lg-11 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a asp-action="Submissions" asp-route-contestId="@Model.ContestId" class="btn-kids btn-secondary-kids">
+                <i class="fa-solid fa-arrow-left"></i> Quay lại danh sách nộp bài
+            </a>
+            <span class="text-muted">Mã bài nộp: #@Model.Id</span>
+        </div>
+
+        <div class="row">
+            <!-- Left Info Panel -->
+            <div class="col-md-5 mb-4">
+                <div class="card-kids p-4 h-100">
+                    <h3 class="text-primary mt-0 mb-3"><i class="fa-solid fa-square-poll-vertical"></i> Kết Quả Chấm</h3>
+                    
+                    <div class="mb-3">
+                        <span class="text-muted d-block text-xs">Trạng thái:</span>
+                        <span class="status-badge @statusClass" style="font-size: 1.1rem; padding: 8px 20px;">@statusText</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <span class="text-muted d-block text-xs">Điểm số đạt được:</span>
+                        <div class="fs-2 fw-bold text-primary">@Model.Score <span class="fs-5 text-muted">/ @Model.Problem?.Points điểm</span></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <span class="text-muted d-block text-xs">Ngôn ngữ nộp bài:</span>
+                        <span class="badge bg-light text-dark border p-2">@Model.Language</span>
+                    </div>
+
+                    @if (Model.Language != "Scratch")
+                    {
+                        <div class="mb-3">
+                            <span class="text-muted d-block text-xs">Thời gian chạy tối đa:</span>
+                            <span class="badge bg-light text-muted border p-2">@Model.ExecutionTimeMs ms</span>
+                        </div>
+                    }
+
+                    <hr class="my-4" style="border-top: 2px dashed hsl(252, 30%, 80%);" />
+
+                    <h4 class="text-primary mb-2"><i class="fa-solid fa-comment-dots"></i> Nhận xét & Kết quả chi tiết</h4>
+                    
+                    @if (string.IsNullOrWhiteSpace(Model.Feedback))
+                    {
+                        <p class="text-muted italic">Đang chờ hệ thống chạy các testcase để tạo phản hồi...</p>
+                    }
+                    else
+                    {
+                        <div class="p-3 bg-light rounded" style="border-left: 5px solid var(--color-primary); font-family: monospace; white-space: pre-wrap; font-size: 0.95rem; line-height: 1.5; max-height: 250px; overflow-y: auto;">@Model.Feedback</div>
+                    }
+                </div>
+            </div>
+
+            <!-- Right Code View Panel -->
+            <div class="col-md-7 mb-4">
+                <div class="card-kids h-100 d-flex flex-column">
+                    <div class="card-header-kids">
+                        <h3 class="mb-0"><i class="fa-solid fa-code"></i> Mã Nguồn Bài Làm</h3>
+                    </div>
+                    <div class="p-4 flex-grow-1 d-flex flex-column">
+                        @if (Model.Language == "Scratch")
+                        {
+                            <div class="text-center py-4 bg-light rounded mb-4" style="border: 2px dashed hsl(200, 95%, 85%);">
+                                <span style="font-size: 4rem;" class="text-warning d-block mb-3">🐱</span>
+                                <h4>Dự án Scratch Lập Trình</h4>
+                                
+                                @if (Model.ScratchLinkOrFile.StartsWith("http"))
+                                {
+                                    <p class="text-muted">Đường dẫn chia sẻ dự án trực tuyến:</p>
+                                    <a href="@Model.ScratchLinkOrFile" target="_blank" class="btn-kids btn-primary-kids wiggle-hover mb-3">
+                                        <i class="fa-solid fa-up-right-from-square"></i> Xem Dự Án Trên Scratch
+                                    </a>
+                                    <code class="d-block text-muted">@Model.ScratchLinkOrFile</code>
+                                }
+                                else
+                                {
+                                    <p class="text-muted">Bài nộp là file tải lên (.sb3):</p>
+                                    <a href="@Model.ScratchLinkOrFile" download class="btn-kids btn-secondary-kids wiggle-hover mb-3">
+                                        <i class="fa-solid fa-file-arrow-down"></i> Tải Về File Scratch (.sb3)
+                                    </a>
+                                }
+                            </div>
+                        }
+                        
+                        <label class="form-label text-muted">Chi tiết code đã nộp:</label>
+                        <pre class="bg-dark p-3 rounded text-success flex-grow-1" style="font-family: monospace; font-size: 0.95rem; margin: 0; min-height: 250px; max-height: 400px; overflow-y: auto; white-space: pre-wrap;">@Model.CodeContent</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

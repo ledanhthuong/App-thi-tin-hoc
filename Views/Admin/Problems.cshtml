@@ -1,0 +1,81 @@
+@using App_thi_tin_hoc.Models
+@model Contest
+@{
+    ViewData["Title"] = "Quản Lý Đề Bài - " + Model.Title;
+}
+
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <span class="text-muted d-block small">Kỳ thi: @Model.Title</span>
+                <h2 class="text-primary mb-0"><i class="fa-solid fa-file-invoice"></i> Danh Sách Đề Bài</h2>
+            </div>
+            <div>
+                <a asp-action="Contests" class="btn-kids btn-secondary-kids me-2">
+                    <i class="fa-solid fa-arrow-left"></i> Kỳ Thi
+                </a>
+                <a asp-action="CreateProblem" asp-route-contestId="@Model.Id" class="btn-kids btn-primary-kids">
+                    <i class="fa-solid fa-plus"></i> Thêm Đề Bài Mới
+                </a>
+            </div>
+        </div>
+
+        <div class="card-kids p-4">
+            @if (!Model.Problems.Any())
+            {
+                <div class="text-center py-5">
+                    <p class="text-muted fs-5 mb-3">Chưa có đề bài nào được tạo cho kỳ thi này.</p>
+                    <a asp-action="CreateProblem" asp-route-contestId="@Model.Id" class="btn-kids btn-primary-kids">
+                        <i class="fa-solid fa-plus"></i> Tạo đề bài đầu tiên
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr class="table-light">
+                                <th>Tiêu đề</th>
+                                <th>Mức độ</th>
+                                <th>Điểm tối đa</th>
+                                <th>Giới hạn thời gian</th>
+                                <th>Giới hạn bộ nhớ</th>
+                                <th class="text-end">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model.Problems)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong class="text-primary fs-5">@p.Title</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info text-dark">@p.Difficulty</span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-success fs-5">@p.Points</strong> điểm
+                                    </td>
+                                    <td>@p.TimeLimitMs ms</td>
+                                    <td>@(p.MemoryLimitKb / 1024) MB</td>
+                                    <td class="text-end">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <a asp-action="Testcases" asp-route-problemId="@p.Id" class="btn btn-sm btn-warning">
+                                                <i class="fa-solid fa-vial"></i> Cấu hình Testcase
+                                            </a>
+                                            <a asp-action="DeleteProblem" asp-route-id="@p.Id" class="btn btn-sm btn-danger" onclick="return confirm('Bạn chắc chắn muốn xóa đề bài này? Các testcase và bài nộp liên quan sẽ bị xóa sạch!')">
+                                                <i class="fa-solid fa-trash"></i> Xóa
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

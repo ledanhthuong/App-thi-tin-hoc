@@ -1,0 +1,118 @@
+@using System.Security.Claims
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Sân chơi Lập trình Tuổi thơ</title>
+    
+    <!-- Bootstrap and Custom CSS -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    
+    <!-- FontAwesome for cute icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+    @{
+        var isAuthenticated = User.Identity?.IsAuthenticated == true;
+        var fullName = User.FindFirst("FullName")?.Value ?? "";
+        var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+        var points = User.FindFirst("Points")?.Value ?? "0";
+        var rankTitle = User.FindFirst("RankTitle")?.Value ?? "Tập sự 🌟";
+        var avatarUrl = User.FindFirst("AvatarUrl")?.Value ?? "/images/avatars/avatar1.svg";
+    }
+
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-kids">
+            <div class="container-fluid">
+                <a class="navbar-brand navbar-brand-kids" asp-controller="Home" asp-action="Index">
+                    <span class="wiggle-hover" style="display:inline-block;">🚀</span> CodeKids
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
+                        aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-kids active" asp-controller="Home" asp-action="Index">
+                                <i class="fa-solid fa-house me-1"></i> Trang chủ
+                            </a>
+                        </li>
+                        @if (isAuthenticated && role == "Teacher")
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link nav-link-kids" asp-controller="Admin" asp-action="Index">
+                                    <i class="fa-solid fa-chalkboard-user me-1"></i> Bảng Giáo Viên
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                    <div class="d-flex align-items-center gap-3">
+                        @if (isAuthenticated)
+                        {
+                            <div class="profile-pill">
+                                <img src="@avatarUrl" alt="Avatar" class="rounded-circle" style="width: 28px; height: 28px; object-fit: cover;" />
+                                <span class="d-none d-sm-inline">@fullName</span>
+                                @if (role == "Student")
+                                {
+                                    <span class="badge bg-warning text-dark ms-1">@points Điểm</span>
+                                    <span class="d-none d-md-inline text-muted text-xs ms-1">(@rankTitle)</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger ms-1">Thầy Cô</span>
+                                }
+                            </div>
+                            <a class="btn-kids btn-accent-kids" asp-controller="Home" asp-action="Logout" style="padding: 6px 16px; font-size: 0.95rem;">
+                                <i class="fa-solid fa-right-from-bracket"></i> Thoát
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="btn-kids btn-primary-kids" asp-controller="Home" asp-action="Login" style="padding: 6px 16px; font-size: 0.95rem;">
+                                <i class="fa-solid fa-right-to-bracket"></i> Đăng Nhập
+                            </a>
+                            <a class="btn-kids btn-secondary-kids" asp-controller="Home" asp-action="Register" style="padding: 6px 16px; font-size: 0.95rem;">
+                                <i class="fa-solid fa-user-plus"></i> Đăng Ký
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container mt-4">
+        <main role="main" class="pb-5">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-kids alert-success-kids alert-dismissible fade show" role="alert">
+                    <i class="fa-solid fa-circle-check me-2"></i> @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-kids alert-danger-kids alert-dismissible fade show" role="alert">
+                    <i class="fa-solid fa-circle-exclamation me-2"></i> @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="footer-kids">
+        <div class="container">
+            <span>&copy; 2026 - 🚀 CodeKids - Sân Chơi Lập Trình Dành Cho Tiểu Học - Thầy Lê Danh Thưởng (SĐT: 0345817993)</span>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

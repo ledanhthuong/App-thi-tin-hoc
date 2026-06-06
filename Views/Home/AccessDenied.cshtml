@@ -1,0 +1,22 @@
+@{
+    ViewData["Title"] = "Không Có Quyền Truy Cập";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 text-center">
+        <div class="card-kids p-5 shadow-lg" style="border-color: var(--color-danger);">
+            <div style="font-size: 5rem;" class="text-danger mb-3 wiggle-hover">
+                <i class="fa-solid fa-circle-minus"></i>
+            </div>
+            <h2 class="text-danger">Dừng lại một chút nhé! ⛔</h2>
+            <p class="text-muted fs-5 mt-3">
+                Khu vực này chỉ dành riêng cho các Thầy Cô giáo quản trị hệ thống thôi. Em hãy quay về trang chủ để làm bài tiếp nhé!
+            </p>
+            <div class="mt-4">
+                <a asp-controller="Home" asp-action="Index" class="btn-kids btn-primary-kids wiggle-hover">
+                    <i class="fa-solid fa-house"></i> Quay Về Trang Chủ
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

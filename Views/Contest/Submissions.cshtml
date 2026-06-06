@@ -1,0 +1,142 @@
+@using App_thi_tin_hoc.Models
+@model List<Submission>
+@{
+    var contest = ViewBag.Contest as Contest;
+    ViewData["Title"] = "Lịch Sử Bài Làm - " + contest?.Title;
+    
+    // Check if any submission is still pending or judging to trigger auto-reload
+    bool hasActiveRuns = Model.Any(s => s.Status == "Pending" || s.Status == "Judging");
+}
+
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <div class="card-kids p-4 mb-4" style="background: linear-gradient(135deg, hsl(252, 90%, 97%), hsl(200, 95%, 97%)); border-color: var(--color-primary);">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a asp-action="Detail" asp-route-id="@contest?.Id" class="btn-kids btn-secondary-kids" style="padding: 6px 16px; font-size: 0.95rem;">
+                    <i class="fa-solid fa-arrow-left"></i> Quay lại Cuộc Thi
+                </a>
+                @if (hasActiveRuns)
+                {
+                    <span class="badge bg-warning text-dark p-2 animate-pulse"><i class="fa-solid fa-arrows-rotate fa-spin"></i> Đang chấm điểm bài làm...</span>
+                }
+            </div>
+            <h1 class="text-primary mt-2">Lịch Sử Bài Làm</h1>
+            <p class="text-muted mb-0">Xem tất cả các lần nộp bài của em cho cuộc thi <strong>@contest?.Title</strong>.</p>
+
+            @if (ViewBag.Sessions != null && (ViewBag.Sessions as List<string>)?.Count > 0)
+            {
+                <div class="mt-3 d-flex align-items-center gap-2">
+                    <label for="sessionSelect" class="text-dark fw-bold mb-0" style="white-space: nowrap;"><i class="fa-solid fa-calendar-days"></i> Chọn đợt thi:</label>
+                    <select id="sessionSelect" class="form-select" style="width: auto; max-width: 320px; border: 2px solid var(--color-primary); border-radius: var(--border-radius-md); font-family: 'Fredoka', 'Nunito', sans-serif;" onchange="changeSession()">
+                        @foreach (var s in ViewBag.Sessions as List<string>)
+                        {
+                            if (s == ViewBag.SelectedSession as string)
+                            {
+                                <option value="@s" selected>@s</option>
+                            }
+                            else
+                            {
+                                <option value="@s">@s</option>
+                            }
+                        }
+                    </select>
+                </div>
+            }
+        </div>
+
+        <div class="card-kids p-4">
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <p class="text-muted fs-5">Em chưa nộp bài nào cho cuộc thi này. Hãy thử sức nhé!</p>
+                    <a asp-action="Detail" asp-route-id="@contest?.Id" class="btn-kids btn-primary-kids mt-3">
+                        <i class="fa-solid fa-play"></i> Bắt đầu làm bài
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr class="table-light">
+                                <th>Thời gian nộp</th>
+                                <th>Nhiệm vụ (Đề bài)</th>
+                                <th>Ngôn ngữ</th>
+                                <th>Trạng thái</th>
+                                <th>Điểm đạt được</th>
+                                <th>Thời gian chạy</th>
+                                <th>Chi tiết</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var sub in Model)
+                            {
+                                var statusClass = sub.Status switch
+                                {
+                                    "Accepted" => "status-ac",
+                                    "Wrong Answer" => "status-wa",
+                                    "Pending" => "status-pending",
+                                    "Judging" => "status-judging",
+                                    "Compile Error" => "status-ce",
+                                    _ => "status-pending"
+                                };
+
+                                var statusText = sub.Status switch
+                                {
+                                    "Accepted" => "Chính xác ✅",
+                                    "Wrong Answer" => "Chưa đúng ❌",
+                                    "Pending" => "Đang chờ ⏳",
+                                    "Judging" => "Đang chấm... 🤖",
+                                    "Compile Error" => "Lỗi biên dịch 📝",
+                                    "Submitted" => "Đã nhận (Chờ GV) 📑",
+                                    _ => sub.Status
+                                };
+
+                                <tr>
+                                    <td>@sub.SubmittedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                    <td><strong>@sub.Problem?.Title</strong></td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">@sub.Language</span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge @statusClass">@statusText</span>
+                                    </td>
+                                    <td>
+                                        <strong class="fs-5 text-primary">@sub.Score</strong> / @sub.Problem?.Points
+                                    </td>
+                                    <td>
+                                        @(sub.Language == "Scratch" ? "N/A" : $"{sub.ExecutionTimeMs} ms")
+                                    </td>
+                                    <td>
+                                        <a asp-action="SubmissionDetail" asp-route-id="@sub.Id" class="btn-kids btn-secondary-kids" style="padding: 4px 12px; font-size: 0.9rem;">
+                                            <i class="fa-solid fa-magnifying-glass"></i> Xem chi tiết
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function changeSession() {
+            var selectedSession = document.getElementById("sessionSelect").value;
+            window.location.href = "?contestId=@contest?.Id&session=" + encodeURIComponent(selectedSession);
+        }
+    </script>
+    @if (hasActiveRuns)
+    {
+        <script>
+            setTimeout(function() {
+                var selectedSession = document.getElementById("sessionSelect")?.value || "@ViewBag.SelectedSession";
+                window.location.href = "?contestId=@contest?.Id&session=" + encodeURIComponent(selectedSession);
+            }, 3000);
+        </script>
+    }
+}

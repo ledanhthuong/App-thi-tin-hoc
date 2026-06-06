@@ -1,0 +1,81 @@
+@using App_thi_tin_hoc.Models
+@model Problem
+@{
+    ViewData["Title"] = "Cấu Hình Testcase - " + Model.Title;
+}
+
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <span class="text-muted d-block small">Đề bài: @Model.Title</span>
+                <h2 class="text-primary mb-0"><i class="fa-solid fa-vials"></i> Quản Lý Bộ Testcase</h2>
+            </div>
+            <div>
+                <a asp-action="Problems" asp-route-contestId="@Model.ContestId" class="btn-kids btn-secondary-kids me-2">
+                    <i class="fa-solid fa-arrow-left"></i> Đề bài
+                </a>
+                <a asp-action="CreateTestcase" asp-route-problemId="@Model.Id" class="btn-kids btn-primary-kids">
+                    <i class="fa-solid fa-plus"></i> Thêm Testcase Mới
+                </a>
+            </div>
+        </div>
+
+        <div class="card-kids p-4">
+            @if (!Model.Testcases.Any())
+            {
+                <div class="text-center py-5">
+                    <p class="text-muted fs-5 mb-3">Đề bài này chưa được cấu hình bộ testcase để chấm tự động.</p>
+                    <a asp-action="CreateTestcase" asp-route-problemId="@Model.Id" class="btn-kids btn-primary-kids">
+                        <i class="fa-solid fa-plus"></i> Thêm testcase đầu tiên
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr class="table-light">
+                                <th style="width: 80px;">Mã</th>
+                                <th>Đầu vào (InputData)</th>
+                                <th>Đầu ra mong muốn (ExpectedOutput)</th>
+                                <th class="text-center" style="width: 150px;">Là ví dụ mẫu?</th>
+                                <th class="text-end" style="width: 100px;">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var tc in Model.Testcases)
+                            {
+                                <tr>
+                                    <td>#@tc.Id</td>
+                                    <td>
+                                        <pre class="bg-light p-2 rounded small m-0" style="font-family: monospace;">@tc.InputData</pre>
+                                    </td>
+                                    <td>
+                                        <pre class="bg-light p-2 rounded small m-0" style="font-family: monospace; border-left: 3px solid var(--color-success);">@tc.ExpectedOutput</pre>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (tc.IsSample)
+                                        {
+                                            <span class="badge bg-success"><i class="fa-solid fa-circle-check"></i> Hiển thị đề bài</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary"><i class="fa-solid fa-eye-slash"></i> Ẩn (Chấm ngầm)</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <a asp-action="DeleteTestcase" asp-route-id="@tc.Id" class="btn btn-sm btn-danger" onclick="return confirm('Bạn chắc chắn muốn xóa testcase này?')">
+                                            <i class="fa-solid fa-trash"></i> Xóa
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

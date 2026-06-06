@@ -1,0 +1,110 @@
+@using App_thi_tin_hoc.Models
+@model Submission
+@{
+    ViewData["Title"] = "Chấm Bài Scratch - Học sinh " + Model.Account?.FullName;
+}
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary mb-0"><i class="fa-solid fa-pen-nib"></i> Chấm Điểm Bài Lập Trình Scratch</h2>
+            <a asp-action="Index" class="btn-kids btn-secondary-kids">
+                <i class="fa-solid fa-arrow-left"></i> Bảng Quản Trị
+            </a>
+        </div>
+
+        <div class="row">
+            <!-- Left Info Panel -->
+            <div class="col-md-5 mb-4">
+                <div class="card-kids p-4 h-100" style="background-color: hsl(200, 95%, 98%); border-color: var(--color-secondary);">
+                    <h3 class="text-primary mt-0 mb-3"><i class="fa-solid fa-circle-info"></i> Thông Tin Bài Nộp</h3>
+                    
+                    <div class="mb-3">
+                        <span class="text-muted d-block text-xs">Học sinh:</span>
+                        <strong class="fs-5">@Model.Account?.FullName</strong>
+                        <small class="text-muted d-block">(@Model.Account?.Username)</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <span class="text-muted d-block text-xs">Đề thi / Bài toán:</span>
+                        <strong class="text-primary">@Model.Problem?.Title</strong>
+                        <small class="text-muted d-block">Giá trị: @Model.Problem?.Points điểm</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <span class="text-muted d-block text-xs">Thời gian nộp bài:</span>
+                        <span class="small">@Model.SubmittedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</span>
+                    </div>
+
+                    <hr class="my-4" style="border-top: 2px dashed hsl(200, 30%, 80%);" />
+
+                    <!-- Scratch Resources -->
+                    <div class="text-center p-3 bg-white rounded border border-2 border-secondary">
+                        <span style="font-size: 3rem;" class="d-block mb-2">🐱</span>
+                        <h5>Tệp tin / Đường dẫn Scratch</h5>
+                        @if (Model.ScratchLinkOrFile.StartsWith("http"))
+                        {
+                            <a href="@Model.ScratchLinkOrFile" target="_blank" class="btn-kids btn-secondary-kids w-100 my-2">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> Mở Trang Scratch
+                            </a>
+                            <code class="d-block text-truncate small">@Model.ScratchLinkOrFile</code>
+                        }
+                        else
+                        {
+                            <a href="@Model.ScratchLinkOrFile" download class="btn-kids btn-secondary-kids w-100 my-2">
+                                <i class="fa-solid fa-download"></i> Tải Về File (.sb3)
+                            </a>
+                            <small class="text-muted">Tải file rồi import vào Scratch để xem bài làm.</small>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Grading Form Panel -->
+            <div class="col-md-7 mb-4">
+                <div class="card-kids p-4 h-100">
+                    <h3 class="text-primary mt-0 mb-3"><i class="fa-solid fa-star-half-stroke"></i> Nhập Điểm & Đánh Giá</h3>
+                    
+                    <form asp-action="GradeScratch" method="post" class="form-kids">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="submissionId" value="@Model.Id" />
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label for="score" class="form-label">Điểm số đạt được (Tối đa @Model.Problem?.Points điểm)</label>
+                            <input type="number" class="form-control form-control-lg text-primary fw-bold" id="score" name="score" value="@Model.Score" min="0" max="@Model.Problem?.Points" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Đánh giá trạng thái</label>
+                            <select class="form-select" id="status" name="status" style="border: 3px solid hsl(220, 30%, 90%); border-radius: var(--border-radius-md); padding: 12px;">
+                                @if (Model.Score == Model.Problem?.Points)
+                                {
+                                    <option value="Accepted" selected>Accepted (Chính xác hoàn toàn ✅)</option>
+                                    <option value="Wrong Answer">Wrong Answer (Chưa hoàn thiện ❌)</option>
+                                }
+                                else
+                                {
+                                    <option value="Accepted">Accepted (Chính xác hoàn toàn ✅)</option>
+                                    <option value="Wrong Answer" selected>Wrong Answer (Chưa hoàn thiện ❌)</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="feedback" class="form-label">Nhận xét & Lời khuyên của Thầy Cô</label>
+                            <textarea class="form-control" id="feedback" name="feedback" rows="5" placeholder="Nhập lời khen ngợi hoặc hướng dẫn sửa bài lỗi cho các em tại đây..." required>@Model.Feedback</textarea>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn-kids btn-primary-kids py-3 wiggle-hover">
+                                <i class="fa-solid fa-paper-plane"></i> Gửi Điểm & Đánh Giá Lên Hệ Thống 🚀
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

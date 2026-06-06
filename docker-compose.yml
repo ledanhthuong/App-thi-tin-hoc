@@ -1,0 +1,37 @@
+services:
+  web:
+    image: app_thi_tin_hoc:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      # CẤU HÌNH DATABASE:
+      # Lựa chọn 1: Sử dụng SQL Server chạy cục bộ trong Docker (mặc định bên dưới)
+      - ConnectionStrings__DefaultConnection=Server=db;Database=db54959;User Id=sa;Password=YourStrong@Password123;TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=True
+      
+      # Lựa chọn 2: Sử dụng SQL Server Cloud/Từ xa (Bỏ comment dòng dưới và điền chuỗi kết nối của bạn)
+      # - ConnectionStrings__DefaultConnection=Server=db54959.databaseasp.net;Database=db54959;User Id=db54959;Password=thuong0909;TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=True
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourStrong@Password123
+    volumes:
+      - mssql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'YourStrong@Password123' -Q 'SELECT 1' -C"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mssql-data:

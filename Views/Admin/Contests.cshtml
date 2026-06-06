@@ -1,0 +1,119 @@
+@using App_thi_tin_hoc.Models
+@model List<Contest>
+@{
+    ViewData["Title"] = "Quản Lý Kỳ Thi";
+}
+
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary mb-0"><i class="fa-solid fa-trophy"></i> Quản Lý Các Kỳ Thi</h2>
+            <div>
+                <a asp-action="Index" class="btn-kids btn-secondary-kids me-2">
+                    <i class="fa-solid fa-arrow-left"></i> Bảng Quản Trị
+                </a>
+                <a asp-action="CreateContest" class="btn-kids btn-primary-kids">
+                    <i class="fa-solid fa-plus"></i> Tạo Kỳ Thi Mới
+                </a>
+            </div>
+        </div>
+
+        <div class="card-kids p-4">
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <p class="text-muted fs-5 mb-3">Chưa có cuộc thi nào được tạo.</p>
+                    <a asp-action="CreateContest" class="btn-kids btn-primary-kids">
+                        <i class="fa-solid fa-plus"></i> Tạo kỳ thi đầu tiên
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr class="table-light">
+                                <th>Tên kỳ thi</th>
+                                <th>Thời gian bắt đầu</th>
+                                <th>Thời gian kết thúc</th>
+                                <th class="text-center">Số đề bài</th>
+                                <th class="text-end">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var contest in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong class="text-primary d-block fs-5">@contest.Title</strong>
+                                        <small class="text-muted">@contest.Description</small>
+                                    </td>
+                                    <td>@contest.StartTime.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@contest.EndTime.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary fs-6">@contest.Problems.Count</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-flex justify-content-end gap-2 align-items-center">
+                                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#startContestModal-@contest.Id">
+                                                <i class="fa-solid fa-play"></i> Khởi động đợt mới
+                                            </button>
+                                            <a asp-action="Problems" asp-route-contestId="@contest.Id" class="btn btn-sm btn-outline-primary">
+                                                <i class="fa-solid fa-file-invoice"></i> Quản lý đề bài
+                                            </a>
+                                            <a asp-action="EditContest" asp-route-id="@contest.Id" class="btn btn-sm btn-outline-warning">
+                                                <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa
+                                            </a>
+                                            <a asp-action="DeleteContest" asp-route-id="@contest.Id" class="btn btn-sm btn-danger" onclick="return confirm('Bạn chắc chắn muốn xóa kỳ thi này? Tất cả đề bài và bài nộp liên quan sẽ bị xóa sạch!')">
+                                                <i class="fa-solid fa-trash"></i> Xóa
+                                            </a>
+                                        </div>
+
+                                        <!-- Modal Khởi động đợt thi mới -->
+                                        <div class="modal fade text-start" id="startContestModal-@contest.Id" tabindex="-1" aria-labelledby="startContestModalLabel-@contest.Id" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content" style="border-radius: var(--border-radius-lg); border: 3px solid var(--color-success);">
+                                                    <div class="modal-header bg-success text-white">
+                                                        <h5 class="modal-title" id="startContestModalLabel-@contest.Id"><i class="fa-solid fa-circle-play"></i> Khởi Động Đợt Thi Mới</h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <form asp-action="StartContest" method="post">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="contestId" value="@contest.Id" />
+                                                        <div class="modal-body text-dark">
+                                                            <p class="mb-2"><strong>Kỳ thi:</strong> @contest.Title</p>
+                                                            <p class="mb-2"><strong>Đợt hiện tại:</strong> <span class="badge bg-secondary">@(contest.CurrentSession ?? "Chưa thiết lập")</span></p>
+                                                            
+                                                            <div class="card bg-light p-3 my-3 border-0" style="border-radius: var(--border-radius-md);">
+                                                                <h6 class="text-success mb-2 fw-bold"><i class="fa-solid fa-circle-info"></i> Lưu ý khi khởi động:</h6>
+                                                                <ul class="small mb-0 ps-3">
+                                                                    <li>Thời gian bắt đầu kỳ thi sẽ tự động cập nhật về thời gian hiện tại.</li>
+                                                                    <li>Các bài nộp của học sinh từ đợt thi trước sẽ được lưu trữ lại theo tên đợt cũ.</li>
+                                                                    <li>Bảng xếp hạng của đợt mới này sẽ được làm sạch (bắt đầu từ 0 điểm).</li>
+                                                                </ul>
+                                                            </div>
+                                                            
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">Đặt tên cho đợt thi mới (hoặc để trống để tự động sinh theo ngày tháng):</label>
+                                                                <input type="text" name="customSessionName" class="form-control" placeholder="Ví dụ: Đợt thi Lớp 5A - Học kỳ 2" style="border: 2px solid hsl(140, 30%, 80%); border-radius: var(--border-radius-md); padding: 10px;" />
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                                            <button type="submit" class="btn btn-success"><i class="fa-solid fa-check"></i> Xác Nhận Khởi Động 🚀</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

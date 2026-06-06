@@ -1,0 +1,51 @@
+@using App_thi_tin_hoc.Models
+@model Testcase
+@{
+    ViewData["Title"] = "Thêm Testcase Mới";
+    int problemId = ViewBag.ProblemId;
+}
+
+<div class="row">
+    <div class="col-lg-6 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary mb-0"><i class="fa-solid fa-plus"></i> Thêm Testcase Mới</h2>
+            <a asp-action="Testcases" asp-route-problemId="@problemId" class="btn-kids btn-secondary-kids">
+                <i class="fa-solid fa-arrow-left"></i> Quay lại
+            </a>
+        </div>
+
+        <div class="card-kids p-4">
+            <form asp-action="CreateTestcase" method="post" class="form-kids">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="ProblemId" value="@problemId" />
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="InputData" class="form-label">Dữ liệu đầu vào (InputData)</label>
+                    <textarea asp-for="InputData" class="form-control" rows="4" placeholder="Nhập dữ liệu giả lập đầu vào của testcase..." style="font-family: monospace;"></textarea>
+                    <span asp-validation-for="InputData" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ExpectedOutput" class="form-label">Đầu ra mong muốn (ExpectedOutput)</label>
+                    <textarea asp-for="ExpectedOutput" class="form-control" rows="4" placeholder="Nhập kết quả đầu ra chuẩn xác tuyệt đối..." required style="font-family: monospace;"></textarea>
+                    <span asp-validation-for="ExpectedOutput" class="text-danger"></span>
+                </div>
+
+                <div class="form-check mb-4 mt-3">
+                    <input class="form-check-input" type="checkbox" asp-for="IsSample" id="isSampleCheck" style="width: 20px; height: 20px; border: 2px solid var(--color-primary);" />
+                    <label class="form-check-label ms-2 fw-bold" for="isSampleCheck" style="font-size: 1.05rem; cursor: pointer;">
+                        Đặt làm ví dụ mẫu (Hiển thị ngay trên đề bài)
+                    </label>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn-kids btn-primary-kids py-3 wiggle-hover">
+                        <i class="fa-solid fa-save"></i> Lưu Testcase 💾
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

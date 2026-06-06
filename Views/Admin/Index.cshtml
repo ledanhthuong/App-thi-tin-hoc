@@ -1,0 +1,200 @@
+@using App_thi_tin_hoc.Models
+@model List<Submission>
+@{
+    ViewData["Title"] = "Trang Quản Trị Giáo Viên";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        @{
+            var isSuper = User.Identity?.Name == "superadmin" || User.HasClaim(c => c.Type == "IsSuperAdmin" && c.Value == "True");
+        }
+        <div class="banner-kids p-4 mb-4" style="background: linear-gradient(135deg, hsl(252, 90%, 25%), hsl(252, 60%, 40%));">
+            <h1 class="text-white mb-2">Bảng Quản Trị Giáo Viên 🧑‍🏫</h1>
+            @if (isSuper)
+            {
+                <p class="text-white-50">Chào mừng Thầy/Cô! Đây là khu vực quản lý đề thi, cấu hình testcase, xem danh sách bài làm và tạo nhanh tài khoản học sinh.</p>
+            }
+            else
+            {
+                <p class="text-white-50">Chào mừng Thầy/Cô! Đây là khu vực quản lý tài khoản học sinh, xem danh sách bài làm và chấm điểm các bài nộp.</p>
+            }
+            
+            <div class="d-flex flex-wrap gap-2 mt-3">
+                @if (isSuper)
+                {
+                    <a asp-action="Contests" class="btn-kids btn-primary-kids">
+                        <i class="fa-solid fa-trophy"></i> Quản Lý Kỳ Thi & Đề Bài
+                    </a>
+                }
+                <a asp-action="Students" class="btn-kids btn-accent-kids">
+                    <i class="fa-solid fa-user-graduate"></i> Quản Lý Tài Khoản Học Sinh
+                </a>
+                @if (isSuper)
+                {
+                    <a asp-action="Teachers" class="btn-kids btn-danger-kids">
+                        <i class="fa-solid fa-chalkboard-user"></i> Quản Lý Tài Khoản Giáo Viên
+                    </a>
+                    <a asp-action="SystemSetup" class="btn-kids btn-warning-kids">
+                        <i class="fa-solid fa-gears"></i> Cấu Hình Hệ Thống
+                    </a>
+                }
+            </div>
+        </div>
+
+        <!-- Metric Widgets Row -->
+        <div class="row mb-4">
+            <div class="col-xl col-md-4 col-sm-6 mb-3">
+                <a asp-action="Students" class="text-decoration-none d-block h-100">
+                    <div class="card-kids p-3 text-center h-100 card-hover-primary" style="border-left: 5px solid var(--color-primary); cursor: pointer;">
+                        <div class="text-muted small mb-1">Học sinh đăng ký</div>
+                        <div class="fs-2 fw-bold text-primary mb-2">@ViewBag.StudentCount</div>
+                        <div class="text-primary small fw-bold card-kids-btn-text">
+                            <i class="fa-solid fa-user-graduate"></i> Quản lý học sinh <i class="fa-solid fa-arrow-right fs-7 ms-1"></i>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            @if (isSuper)
+            {
+                <div class="col-xl col-md-4 col-sm-6 mb-3">
+                    <a asp-action="Teachers" class="text-decoration-none d-block h-100">
+                        <div class="card-kids p-3 text-center h-100 card-hover-danger" style="border-left: 5px solid var(--color-danger); cursor: pointer;">
+                            <div class="text-muted small mb-1">Giáo viên đăng ký</div>
+                            <div class="fs-2 fw-bold text-danger mb-2">@ViewBag.TeacherCount</div>
+                            <div class="text-danger small fw-bold card-kids-btn-text">
+                                <i class="fa-solid fa-chalkboard-user"></i> Quản lý giáo viên <i class="fa-solid fa-arrow-right fs-7 ms-1"></i>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+            @if (isSuper)
+            {
+                <div class="col-xl col-md-4 col-sm-6 mb-3">
+                    <a asp-action="Contests" class="text-decoration-none d-block h-100">
+                        <div class="card-kids p-3 text-center h-100 card-hover-secondary" style="border-left: 5px solid var(--color-secondary); cursor: pointer;">
+                            <div class="text-muted small mb-1">Kỳ thi đã tạo</div>
+                            <div class="fs-2 fw-bold text-secondary mb-2">@ViewBag.ContestCount</div>
+                            <div class="text-secondary small fw-bold card-kids-btn-text">
+                                <i class="fa-solid fa-trophy"></i> Quản lý kỳ thi <i class="fa-solid fa-arrow-right fs-7 ms-1"></i>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-xl col-md-4 col-sm-6 mb-3">
+                    <a asp-action="Contests" class="text-decoration-none d-block h-100">
+                        <div class="card-kids p-3 text-center h-100 card-hover-success" style="border-left: 5px solid var(--color-success); cursor: pointer;">
+                            <div class="text-muted small mb-1">Số lượng đề bài</div>
+                            <div class="fs-2 fw-bold text-success mb-2">@ViewBag.ProblemCount</div>
+                            <div class="text-success small fw-bold card-kids-btn-text">
+                                <i class="fa-solid fa-book-open"></i> Quản lý đề bài <i class="fa-solid fa-arrow-right fs-7 ms-1"></i>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="col-xl col-md-4 col-sm-6 mb-3">
+                    <div class="card-kids p-3 text-center h-100" style="border-left: 5px solid var(--color-secondary);">
+                        <div class="text-muted small mb-1">Kỳ thi hiện tại</div>
+                        <div class="fs-2 fw-bold text-secondary mb-2">@ViewBag.ContestCount</div>
+                        <div class="text-secondary small fw-bold text-muted">
+                            <i class="fa-solid fa-trophy"></i> Kỳ thi trên hệ thống
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl col-md-4 col-sm-6 mb-3">
+                    <div class="card-kids p-3 text-center h-100" style="border-left: 5px solid var(--color-success);">
+                        <div class="text-muted small mb-1">Số lượng đề bài</div>
+                        <div class="fs-2 fw-bold text-success mb-2">@ViewBag.ProblemCount</div>
+                        <div class="text-success small fw-bold text-muted">
+                            <i class="fa-solid fa-book-open"></i> Đề bài trên hệ thống
+                        </div>
+                    </div>
+                </div>
+            }
+            <div class="col-xl col-md-4 col-sm-6 mb-3">
+                <a href="#recent-submissions" class="text-decoration-none d-block h-100">
+                    <div class="card-kids p-3 text-center h-100 card-hover-accent" style="border-left: 5px solid var(--color-accent); cursor: pointer;">
+                        <div class="text-muted small mb-1">Tổng số bài nộp</div>
+                        <div class="fs-2 fw-bold text-warning mb-2">@ViewBag.SubmissionCount</div>
+                        <div class="text-accent small fw-bold card-kids-btn-text">
+                            <i class="fa-solid fa-clock-rotate-left"></i> Xem bài nộp <i class="fa-solid fa-arrow-right fs-7 ms-1"></i>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Submissions List -->
+        <div id="recent-submissions" class="card-kids p-4">
+            <h3 class="text-primary mt-0 mb-4"><i class="fa-solid fa-clock-rotate-left"></i> Bài Nộp Gần Đây Trên Hệ Thống</h3>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr class="table-light">
+                            <th>Học sinh</th>
+                            <th>Kỳ thi</th>
+                            <th>Đề bài</th>
+                            <th>Ngôn ngữ</th>
+                            <th>Nộp lúc</th>
+                            <th>Trạng thái</th>
+                            <th>Điểm số</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sub in Model)
+                        {
+                            var statusClass = sub.Status switch
+                            {
+                                "Accepted" => "status-ac",
+                                "Wrong Answer" => "status-wa",
+                                "Pending" => "status-pending",
+                                "Judging" => "status-judging",
+                                "Compile Error" => "status-ce",
+                                _ => "status-pending"
+                            };
+
+                            var statusText = sub.Status switch
+                            {
+                                "Accepted" => "Chính xác ✅",
+                                "Wrong Answer" => "Chưa đúng ❌",
+                                "Pending" => "Đang chờ ⏳",
+                                "Judging" => "Đang chấm... 🤖",
+                                "Compile Error" => "Lỗi biên dịch 📝",
+                                "Submitted" => "Chờ GV chấm 📑",
+                                _ => sub.Status
+                            };
+
+                            <tr>
+                                <td><strong>@sub.Account?.FullName</strong> (@sub.Account?.Username)</td>
+                                <td>@sub.Contest?.Title</td>
+                                <td>@sub.Problem?.Title</td>
+                                <td><span class="badge bg-light text-dark border">@sub.Language</span></td>
+                                <td>@sub.SubmittedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                <td><span class="status-badge @statusClass">@statusText</span></td>
+                                <td><strong class="text-primary fs-5">@sub.Score</strong> / @sub.Problem?.Points</td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <a asp-controller="Contest" asp-action="SubmissionDetail" asp-route-id="@sub.Id" class="btn btn-sm btn-outline-info" style="font-size: 0.85rem;">
+                                            <i class="fa-solid fa-code"></i> Xem code
+                                        </a>
+                                        @if (sub.Language == "Scratch" && sub.Status == "Submitted")
+                                        {
+                                            <a asp-action="GradeScratch" asp-route-submissionId="@sub.Id" class="btn btn-sm btn-warning" style="font-size: 0.85rem;">
+                                                <i class="fa-solid fa-pen-to-square"></i> Chấm bài Scratch
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

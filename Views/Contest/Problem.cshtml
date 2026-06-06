@@ -1,0 +1,210 @@
+@using App_thi_tin_hoc.Models
+@model Problem
+@{
+    ViewData["Title"] = Model.Title;
+    var sampleTestcases = ViewBag.SampleTestcases as List<Testcase> ?? new List<Testcase>();
+    var lastCode = ViewBag.LastCode as string ?? "";
+    var lastLanguage = ViewBag.LastLanguage as string ?? "Python";
+    var isEnded = DateTime.UtcNow > Model.Contest.EndTime;
+}
+
+<div class="row">
+    <!-- Problem Description Column -->
+    <div class="col-lg-6 mb-4">
+        <div class="story-container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a asp-action="Detail" asp-route-id="@Model.ContestId" class="btn-kids btn-secondary-kids" style="padding: 6px 16px; font-size: 0.95rem;">
+                    <i class="fa-solid fa-arrow-left"></i> Danh sách bài
+                </a>
+                <span class="badge bg-warning text-dark fs-6"><i class="fa-solid fa-star"></i> @Model.Points Điểm</span>
+            </div>
+            
+            <h2 class="text-primary mt-2">@Model.Title</h2>
+            
+            <div class="d-flex gap-2 mb-4">
+                <span class="badge bg-info text-dark">Mức độ: @Model.Difficulty</span>
+                <span class="badge bg-light text-muted border">Giới hạn thời gian: @((double)Model.TimeLimitMs / 1000)s</span>
+                <span class="badge bg-light text-muted border">Bộ nhớ: @(Model.MemoryLimitKb / 1024)MB</span>
+            </div>
+
+            <hr style="border-top: 2px dashed hsl(200, 30%, 80%);" />
+
+            <div class="problem-content">
+                @Html.Raw(Model.StoryDescription)
+            </div>
+
+            @if (!isEnded && Model.Contest!.ShowCodeHints)
+            {
+                <!-- Collapsible Code Help Templates -->
+                <div class="mt-4">
+                    <button class="btn btn-sm text-dark w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#codeTemplatesHelp" aria-expanded="false" aria-controls="codeTemplatesHelp" style="border-radius: var(--border-radius-md); padding: 12px; font-weight: bold; border: none; background: hsl(190, 95%, 85%); font-family: 'Fredoka', 'Nunito', sans-serif;">
+                        <span><i class="fa-solid fa-lightbulb"></i> 💡 Nhấn để xem Mẫu Code đọc dữ liệu (Python & C++)</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div class="collapse mt-2" id="codeTemplatesHelp">
+                        <div class="card-kids p-3" style="background: hsl(210, 30%, 98%); border: 3px dashed hsl(210, 80%, 90%); border-radius: var(--border-radius-md);">
+                            <ul class="nav nav-tabs mb-2" id="templateTabs" role="tablist" style="border-bottom: 2px solid hsl(210, 80%, 90%);">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active text-primary fw-bold" id="py-tab" data-bs-toggle="tab" data-bs-target="#py-template" type="button" role="tab" aria-controls="py-template" aria-selected="true" style="border: none; background: transparent;">Python 🐍</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link text-primary fw-bold" id="cpp-tab" data-bs-toggle="tab" data-bs-target="#cpp-template" type="button" role="tab" aria-controls="cpp-template" aria-selected="false" style="border: none; background: transparent;">C++ ⚙️</button>
+                                </li>
+                            </ul>
+                            <div class="tab-content" id="templateTabsContent">
+                                <div class="tab-pane fade show active" id="py-template" role="tabpanel" aria-labelledby="py-tab">
+                                    <p class="small text-muted mb-2">Đọc dữ liệu trong Python bằng lệnh <code>input()</code>:</p>
+                                    <pre style="background: #282c34; color: #abb2bf; padding: 10px; border-radius: var(--border-radius-sm); font-size: 0.95rem; margin-bottom: 5px; font-family: monospace;"># Mẫu đọc 2 số trên 2 dòng khác nhau
+a = int(input())
+b = int(input())
+print(a + b)
+
+# Mẫu đọc 1 số trên 1 dòng duy nhất
+n = int(input())
+print(n * 2)</pre>
+                                </div>
+                                <div class="tab-pane fade" id="cpp-template" role="tabpanel" aria-labelledby="cpp-tab">
+                                    <p class="small text-muted mb-2">Đọc dữ liệu trong C++ bằng lệnh <code>cin</code>:</p>
+                                    <pre style="background: #282c34; color: #abb2bf; padding: 10px; border-radius: var(--border-radius-sm); font-size: 0.95rem; margin-bottom: 5px; font-family: monospace;">#include &lt;iostream&gt;
+using namespace std;
+
+int main() {
+    // Mẫu đọc 2 số cách nhau bởi dấu cách hoặc dòng mới
+    int a, b;
+    if (cin &gt;&gt; a &gt;&gt; b) {
+        cout &lt;&lt; (a + b) &lt;&lt; endl;
+    }
+    return 0;
+}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (sampleTestcases.Any())
+            {
+                <h4 class="mt-4 text-primary"><i class="fa-solid fa-circle-question"></i> Ví dụ minh họa</h4>
+                @foreach (var tc in sampleTestcases)
+                {
+                    <div class="card-kids bg-light p-3 mb-3" style="border: 2px solid hsl(200, 95%, 88%);">
+                        <div class="row">
+                            <div class="col-6">
+                                <strong class="text-muted text-xs d-block mb-1">Đầu vào (Input):</strong>
+                                <pre style="background: hsl(200, 30%, 95%); padding: 8px; border-radius: var(--border-radius-sm); margin: 0; font-family: monospace; font-size: 0.95rem;">@tc.InputData</pre>
+                            </div>
+                            <div class="col-6">
+                                <strong class="text-muted text-xs d-block mb-1">Đầu ra (Output) mong đợi:</strong>
+                                <pre style="background: hsl(200, 30%, 95%); padding: 8px; border-radius: var(--border-radius-sm); margin: 0; font-family: monospace; font-size: 0.95rem;">@tc.ExpectedOutput</pre>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- Code Workspace Column -->
+    <div class="col-lg-6 mb-4">
+        <div class="workspace-container">
+            <h3 class="text-white mt-0 mb-3"><i class="fa-solid fa-laptop-code"></i> Góc Lập Trình</h3>
+            
+            <form asp-action="Submit" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="problemId" value="@Model.Id" />
+
+                <!-- Language Selection -->
+                <div class="mb-3">
+                    <label for="languageSelect" class="form-label text-white fw-bold">Chọn ngôn ngữ làm bài:</label>
+                    <select class="form-select form-select-lg" id="languageSelect" name="language" onchange="toggleEditor()" style="border: 3px solid var(--color-primary); border-radius: var(--border-radius-md);" @(isEnded ? "disabled" : "")>
+                        @if (lastLanguage == "Python")
+                        {
+                            <option value="Python" selected>Python 🐍 (Chấm tự động)</option>
+                            <option value="C++">C++ ⚙️ (Chấm tự động)</option>
+                            <option value="Scratch">Scratch 🐱 (Thầy cô chấm tay)</option>
+                        }
+                        else if (lastLanguage == "C++")
+                        {
+                            <option value="Python">Python 🐍 (Chấm tự động)</option>
+                            <option value="C++" selected>C++ ⚙️ (Chấm tự động)</option>
+                            <option value="Scratch">Scratch 🐱 (Thầy cô chấm tay)</option>
+                        }
+                        else
+                        {
+                            <option value="Python">Python 🐍 (Chấm tự động)</option>
+                            <option value="C++">C++ ⚙️ (Chấm tự động)</option>
+                            <option value="Scratch" selected>Scratch 🐱 (Thầy cô chấm tay)</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Text code workspace for Python & C++ -->
+                <div id="textCodeWorkspace" style="display: @(lastLanguage == "Scratch" ? "none" : "block");">
+                    <div class="mb-3">
+                        <label for="codeContent" class="form-label text-white-50">Viết code của em vào ô dưới đây:</label>
+                        <textarea class="editor-textarea" id="codeContent" name="codeContent" placeholder="# Viết code tại đây..." @(isEnded ? "readonly" : "")>@lastCode</textarea>
+                    </div>
+                </div>
+
+                <!-- Scratch file / link upload workspace -->
+                <div id="scratchWorkspace" style="display: @(lastLanguage == "Scratch" ? "block" : "none");">
+                    <div class="card p-3 mb-3 bg-dark text-white border-secondary" style="border-radius: var(--border-radius-md); border-width: 2px;">
+                        <h5 class="text-warning"><i class="fa-solid fa-circle-info"></i> Hướng dẫn nộp bài Scratch</h5>
+                        <p class="text-white-50 small mb-0">Em có thể dán link dự án Scratch chia sẻ trực tuyến HOẶC tải trực tiếp file Scratch (.sb3) của em lên hệ thống nhé!</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="scratchLink" class="form-label text-white-50">Dán Link dự án Scratch (nếu có):</label>
+                        <input type="text" class="form-control" id="scratchLink" name="scratchLink" placeholder="Ví dụ: https://scratch.mit.edu/projects/123456789/" style="background-color: hsl(220, 25%, 8%); color: white; border: 2px solid #555;" @(isEnded ? "readonly" : "") />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="scratchFile" class="form-label text-white-50">Hoặc tải lên File Scratch của em (.sb3):</label>
+                        <input type="file" class="form-control" id="scratchFile" name="scratchFile" accept=".sb3" style="background-color: hsl(220, 25%, 8%); color: white; border: 2px solid #555;" @(isEnded ? "disabled" : "") />
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="d-grid gap-2 mt-4">
+                    @if (isEnded)
+                    {
+                        <div class="alert alert-danger text-center fw-bold fs-5 mb-0" style="border-radius: var(--border-radius-md); border: 2px solid hsl(0, 85%, 80%); background-color: hsl(0, 95%, 96%); color: hsl(0, 85%, 38%);">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Đợt thi này đã kết thúc. Bạn không thể nộp bài giải nữa!
+                        </div>
+                    }
+                    else
+                    {
+                        <button type="submit" class="btn-kids btn-accent-kids wiggle-hover py-3">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Bấm Để Nộp Bài Lên Mây 🚀
+                        </button>
+                    }
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleEditor() {
+            var lang = document.getElementById("languageSelect").value;
+            var textWorkspace = document.getElementById("textCodeWorkspace");
+            var scratchWorkspace = document.getElementById("scratchWorkspace");
+            var codeTextarea = document.getElementById("codeContent");
+
+            if (lang === "Scratch") {
+                textWorkspace.style.display = "none";
+                scratchWorkspace.style.display = "block";
+            } else {
+                textWorkspace.style.display = "block";
+                scratchWorkspace.style.display = "none";
+            }
+        }
+
+        // Initialize editor state
+        document.addEventListener("DOMContentLoaded", function() {
+            toggleEditor();
+        });
+    </script>
+}

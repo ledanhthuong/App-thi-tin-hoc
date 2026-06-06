@@ -1,0 +1,144 @@
+@model App_thi_tin_hoc.Models.Account
+@{
+    var isSuper = ViewBag.IsSuperAdmin == true;
+    ViewData["Title"] = isSuper ? "Chỉnh Sửa Tài Khoản" : "Chỉnh Sửa Thông Tin Học Sinh";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="banner-kids p-4 mb-4" style="background: linear-gradient(135deg, var(--color-secondary), var(--color-secondary-hover));">
+            @if (isSuper)
+            {
+                <h1 class="text-white mb-2"><i class="fa-solid fa-user-gear"></i> Chỉnh Sửa Tài Khoản</h1>
+                <p class="text-white-50">Cập nhật họ và tên, vai trò, điểm số hoặc thiết lập lại mật khẩu cho tài khoản người dùng.</p>
+            }
+            else
+            {
+                <h1 class="text-white mb-2"><i class="fa-solid fa-user-gear"></i> Chỉnh Sửa Học Sinh</h1>
+                <p class="text-white-50">Cập nhật họ và tên, điều chỉnh điểm tích lũy hoặc thiết lập lại mật khẩu đăng nhập cho học sinh.</p>
+            }
+        </div>
+
+        <div class="card-kids p-4">
+            <form method="post" asp-action="EditStudent" class="form-kids">
+                <input type="hidden" asp-for="Id" />
+                
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-kids alert-danger-kids alert-dismissible fade show" role="alert">
+                        <i class="fa-solid fa-circle-xmark me-2"></i>
+                        <strong>Đã có lỗi xảy ra:</strong>
+                        <div asp-validation-summary="All" class="mt-2 text-danger small"></div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <div class="mb-3">
+                    <label for="username">Tên đăng nhập (Username) <span class="text-danger">*</span></label>
+                    <input type="text" id="username" name="username" class="form-control" value="@Model.Username" required />
+                    <div class="form-text text-muted small mt-1">
+                        <i class="fa-solid fa-circle-info"></i> Chỉ dùng chữ cái viết thường, chữ số và dấu gạch dưới (không dấu, không khoảng cách).
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="fullName">Họ và tên <span class="text-danger">*</span></label>
+                    <input type="text" id="fullName" name="fullName" class="form-control" value="@Model.FullName" required />
+                </div>
+
+                @if (isSuper)
+                {
+                    <div class="mb-3">
+                        <label for="role">Vai trò <span class="text-danger">*</span></label>
+                        <select id="role" name="role" class="form-select border-3" style="border-radius: var(--border-radius-md); border-color: hsl(220, 30%, 90%);">
+                            @if (Model.Role == "Teacher")
+                            {
+                                <option value="Student">Học sinh</option>
+                                <option value="Teacher" selected>Giáo viên</option>
+                            }
+                            else
+                            {
+                                <option value="Student" selected>Học sinh</option>
+                                <option value="Teacher">Giáo viên</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3 form-check form-switch p-0" id="superAdminPrivilegeSection" style="padding-left: 2.5em !important; @(Model.Role == "Teacher" ? "" : "display: none;")">
+                        <input class="form-check-input border-3" type="checkbox" id="isSuperAdmin" name="isSuperAdmin" value="true" @(Model.IsSuperAdmin ? "checked" : "") style="width: 2.5em; height: 1.25em; cursor: pointer;" />
+                        <label class="form-check-label fw-bold ms-2" for="isSuperAdmin" style="cursor: pointer;">
+                            <i class="fa-solid fa-shield-halved text-danger me-1"></i> Cấp quyền quản trị tối cao (Super Admin)
+                        </label>
+                        <div class="form-text text-muted small mt-1">
+                            Tài khoản có quyền Super Admin sẽ được phép quản lý toàn bộ học sinh và giáo viên trên hệ thống.
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <input type="hidden" name="role" value="@Model.Role" />
+                }
+
+                <div class="row mb-3" id="pointsSection" style="@(Model.Role == "Student" ? "" : "display: none;")">
+                    <div class="col-md-6">
+                        <label for="points">Điểm tích lũy</label>
+                        <input type="number" id="points" name="points" class="form-control" value="@Model.Points" min="0" required />
+                        <div class="form-text text-muted small mt-1">
+                            Hệ thống sẽ tự động cập nhật lại danh hiệu tương ứng với điểm số mới.
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label>Danh hiệu hiện tại</label>
+                        <div class="form-control bg-light fw-bold text-center border-3 px-3 py-2 text-success" style="border-radius: var(--border-radius-md); font-family: var(--font-heading); font-size: 1.1rem;">
+                            @Model.RankTitle
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="newPassword">Đặt lại mật khẩu mới</label>
+                    <input type="password" id="newPassword" name="newPassword" class="form-control" placeholder="Nhập mật khẩu mới tại đây (Để trống nếu giữ nguyên mật khẩu cũ)" />
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end">
+                    <a asp-action="@(Model.Role == "Teacher" ? "Teachers" : "Students")" class="btn btn-outline-secondary d-inline-flex align-items-center" style="border-radius: var(--border-radius-md); padding: 10px 24px; font-family: var(--font-heading); font-size: 1.1rem;">
+                        Hủy bỏ
+                    </a>
+                    <button type="submit" class="btn-kids btn-secondary-kids m-0">
+                        <i class="fa-solid fa-floppy-disk"></i> Lưu Thay Đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var roleSelect = document.getElementById('role');
+            var pointsSection = document.getElementById('pointsSection');
+            var pointsInput = document.getElementById('points');
+            var superAdminSection = document.getElementById('superAdminPrivilegeSection');
+            var superAdminInput = document.getElementById('isSuperAdmin');
+
+            function togglePointsAndSuperAdmin() {
+                if (roleSelect && roleSelect.value !== 'Student') {
+                    if (pointsSection) pointsSection.style.display = 'none';
+                    if (pointsInput) pointsInput.removeAttribute('required');
+                    if (superAdminSection) superAdminSection.style.display = 'block';
+                } else {
+                    if (pointsSection) pointsSection.style.display = 'flex';
+                    if (pointsInput) pointsInput.setAttribute('required', 'required');
+                    if (superAdminSection) superAdminSection.style.display = 'none';
+                    if (superAdminInput) superAdminInput.checked = false;
+                }
+            }
+
+            if (roleSelect) {
+                roleSelect.addEventListener('change', togglePointsAndSuperAdmin);
+                togglePointsAndSuperAdmin();
+            }
+        });
+    </script>
+}

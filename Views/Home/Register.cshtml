@@ -1,0 +1,70 @@
+@{
+    ViewData["Title"] = "Đăng Ký Tài Khoản";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card-kids shadow-lg">
+            <div class="card-header-kids text-center">
+                <h2 class="mb-0"><i class="fa-solid fa-user-plus text-primary"></i> Đăng Ký Tài Khoản</h2>
+            </div>
+            <div class="p-4">
+                <form asp-action="Register" method="post" class="form-kids">
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Tên đăng nhập (viết liền không dấu)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white" style="border: 3px solid hsl(220, 30%, 90%); border-right: none; border-radius: var(--border-radius-md) 0 0 var(--border-radius-md);">
+                                <i class="fa-solid fa-user-tag text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Ví dụ: namle123" required style="border-left: none;" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="fullName" class="form-label">Họ và tên của em</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white" style="border: 3px solid hsl(220, 30%, 90%); border-right: none; border-radius: var(--border-radius-md) 0 0 var(--border-radius-md);">
+                                <i class="fa-solid fa-id-card text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control" id="fullName" name="fullName" placeholder="Ví dụ: Lê Hoàng Nam" required style="border-left: none;" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Mật khẩu</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white" style="border: 3px solid hsl(220, 30%, 90%); border-right: none; border-radius: var(--border-radius-md) 0 0 var(--border-radius-md);">
+                                <i class="fa-solid fa-lock text-muted"></i>
+                            </span>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Nhập mật khẩu" required style="border-left: none;" />
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="confirmPassword" class="form-label">Nhập lại mật khẩu</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white" style="border: 3px solid hsl(220, 30%, 90%); border-right: none; border-radius: var(--border-radius-md) 0 0 var(--border-radius-md);">
+                                <i class="fa-solid fa-shield-halved text-muted"></i>
+                            </span>
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu để kiểm tra" required style="border-left: none;" />
+                        </div>
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn-kids btn-secondary-kids wiggle-hover">
+                            Tạo Tài Khoản 🎉
+                        </button>
+                    </div>
+
+                    <div class="text-center">
+                        <p class="text-muted">Đã có tài khoản? <a asp-action="Login" class="fw-bold text-primary">Đăng nhập tại đây!</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

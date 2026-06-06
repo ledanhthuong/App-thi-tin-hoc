@@ -1,0 +1,122 @@
+@using App_thi_tin_hoc.Models
+@model Problem
+@{
+    ViewData["Title"] = "Thêm Đề Bài Mới";
+    int contestId = ViewBag.ContestId;
+}
+
+<!-- Include Quill stylesheet -->
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary mb-0"><i class="fa-solid fa-file-signature"></i> Thêm Đề Bài Mới</h2>
+            <a asp-action="Problems" asp-route-contestId="@contestId" class="btn-kids btn-secondary-kids">
+                <i class="fa-solid fa-arrow-left"></i> Quay lại
+            </a>
+        </div>
+
+        <div class="card-kids p-4">
+            <form asp-action="CreateProblem" method="post" enctype="multipart/form-data" class="form-kids">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="ContestId" value="@contestId" />
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label">Tiêu đề bài toán</label>
+                    <input asp-for="Title" class="form-control" placeholder="Ví dụ: Giúp gấu nhặt táo 🍎" required style="border: 3px solid hsl(220, 30%, 90%); border-radius: var(--border-radius-md); padding: 12px;" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Points" class="form-label">Điểm số tối đa</label>
+                        <input asp-for="Points" class="form-control" type="number" value="100" required min="10" max="1000" style="border: 3px solid hsl(220, 30%, 90%); border-radius: var(--border-radius-md); padding: 12px;" />
+                        <span asp-validation-for="Points" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Difficulty" class="form-label">Độ khó</label>
+                        <select asp-for="Difficulty" class="form-select" style="border: 3px solid hsl(220, 30%, 90%); border-radius: var(--border-radius-md); padding: 12px; height: 53px;">
+                            <option value="Dễ">Dễ</option>
+                            <option value="Trung bình">Trung bình</option>
+                            <option value="Khó">Khó</option>
+                        </select>
+                        <span asp-validation-for="Difficulty" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Ảnh minh họa (Tải lên hoặc dán Link)</label>
+                        <input type="file" name="imageFile" class="form-control" accept="image/*" style="border: 3px solid hsl(220, 30%, 90%); border-radius: var(--border-radius-md); padding: 10px;" />
+                        <input asp-for="ImageUrl" class="form-control mt-2" placeholder="Hoặc nhập đường dẫn ảnh..." style="border: 3px solid hsl(220, 30%, 90%); border-radius: var(--border-radius-md); padding: 8px 12px; font-size: 0.9rem;" />
+                        <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="TimeLimitMs" class="form-label">Giới hạn thời gian chạy (ms)</label>
+                        <input asp-for="TimeLimitMs" class="form-control" type="number" value="2000" required min="100" max="10000" style="border: 3px solid hsl(220, 30%, 90%); border-radius: var(--border-radius-md); padding: 12px;" />
+                        <span asp-validation-for="TimeLimitMs" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="MemoryLimitKb" class="form-label">Giới hạn bộ nhớ (KB)</label>
+                        <input asp-for="MemoryLimitKb" class="form-control" type="number" value="65536" required min="1024" max="524288" style="border: 3px solid hsl(220, 30%, 90%); border-radius: var(--border-radius-md); padding: 12px;" />
+                        <span asp-validation-for="MemoryLimitKb" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="StoryDescription" class="form-label">Mô tả bài toán & Câu chuyện (Giống Word)</label>
+                    <div id="editor-container" style="min-height: 280px; background: white; border: 3px solid hsl(220, 30%, 90%); border-radius: 0 0 var(--border-radius-md) var(--border-radius-md); font-family: 'Fredoka', 'Nunito', sans-serif; font-size: 1.05rem;">
+                        @Html.Raw(Model?.StoryDescription)
+                    </div>
+                    <input type="hidden" asp-for="StoryDescription" id="StoryDescriptionInput" />
+                    <span asp-validation-for="StoryDescription" class="text-danger"></span>
+                    <small class="text-muted d-block mt-2">Bạn có thể viết chữ màu sắc, in đậm, đổi kích cỡ, căn lề và lập danh sách rất dễ dàng!</small>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn-kids btn-primary-kids py-3 wiggle-hover" style="font-size: 1.15rem; border-radius: var(--border-radius-lg);">
+                        <i class="fa-solid fa-square-plus"></i> Lưu Đề Bài 💾
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Include the Quill library -->
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const quill = new Quill('#editor-container', {
+            theme: 'snow',
+            placeholder: 'Hãy gõ câu chuyện bài toán vào đây...',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'align': [] }],
+                    ['link', 'blockquote', 'code-block'],
+                    ['clean']
+                ]
+            }
+        });
+
+        // Set initial HTML if editing
+        const initialVal = document.querySelector('#StoryDescriptionInput').value;
+        if (initialVal) {
+            quill.root.innerHTML = initialVal;
+        }
+
+        // Sync Quill HTML to hidden input on form submit
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
+            const storyInput = document.querySelector('#StoryDescriptionInput');
+            storyInput.value = quill.getSemanticHTML();
+        });
+    });
+</script>

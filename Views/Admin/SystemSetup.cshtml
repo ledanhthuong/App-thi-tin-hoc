@@ -1,0 +1,464 @@
+@{
+    ViewData["Title"] = "Cấu Hình Hệ Thống";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="banner-kids p-4 mb-4" style="background: linear-gradient(135deg, hsl(200, 95%, 45%), hsl(252, 90%, 65%));">
+            <h1 class="text-white mb-2">Cấu Hình Môi Trường Chấm Bài ⚙️</h1>
+            <p class="text-white-50">Tự động phát hiện, kiểm tra và cài đặt nhanh các compiler C++ và Python trực tiếp trên máy chủ hosting.</p>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+                <a asp-action="Index" class="btn-kids btn-accent-kids">
+                    <i class="fa-solid fa-arrow-left"></i> Quay Lại Bảng Điều Khiển
+                </a>
+                <form asp-action="AutoDetectCompilers" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn-kids btn-primary-kids">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Tự Động Quét Hệ Thống
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Diagnostics Panel -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card-kids p-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+                <div>
+                    <h3 class="m-0 text-primary"><i class="fa-solid fa-shield-halved me-2"></i>Chẩn Đoán Quyền Thực Thi Hệ Thống</h3>
+                    <p class="text-muted small mb-0 mt-1">Một số máy chủ hosting (như runasp.net) chặn thực thi các file .exe tự tải lên (lỗi Group Policy). Hãy chạy chẩn đoán để xác định thư mục được cho phép.</p>
+                </div>
+                <button type="button" class="btn-kids btn-secondary-kids" onclick="runDiagnostics()">
+                    <i class="fa-solid fa-microscope"></i> Chạy Chẩn Đoán Hệ Thống
+                </button>
+            </div>
+            
+            <div id="diagResultsContainer" class="d-none">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped align-middle mb-3">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 30%;">Nội dung kiểm tra</th>
+                                <th style="width: 20%;">Trạng thái</th>
+                                <th>Chi tiết kết quả</th>
+                            </tr>
+                        </thead>
+                        <tbody id="diagResultsBody">
+                            <!-- JS will inject rows here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="diagRecommendationAlert" class="alert d-none" role="alert">
+                    <!-- Recommendation message -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- C++ Compiler Card -->
+    <div class="col-md-6 mb-4">
+        <div class="card-kids h-100">
+            <div class="card-header-kids d-flex justify-content-between align-items-center">
+                <h4 class="m-0 text-primary"><i class="fa-solid fa-code me-2"></i>Trình Biên Dịch C++ (g++)</h4>
+                @if (ViewBag.GppStatus == "Active")
+                {
+                    <span class="badge bg-success px-3 py-2 fs-7"><i class="fa-solid fa-circle-check me-1"></i> Đã Hoạt Động</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger px-3 py-2 fs-7"><i class="fa-solid fa-triangle-exclamation me-1"></i> Chưa Hoạt Động</span>
+                }
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-muted small uppercase">Đường dẫn thực thi hiện tại:</label>
+                    <div class="p-2 bg-light border rounded font-monospace text-break fs-7 text-secondary">
+                        @(string.IsNullOrEmpty(ViewBag.GppPath) ? "Chưa cấu hình (Sử dụng mặc định 'g++' trên hệ thống)" : ViewBag.GppPath)
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-muted small uppercase">Thông tin kiểm tra phiên bản:</label>
+                    <pre class="bg-dark text-white p-3 rounded font-monospace fs-8 mb-0" style="max-height: 150px; overflow-y: auto;">@ViewBag.GppVersion</pre>
+                </div>
+
+                <hr />
+
+                <!-- Manual Configuration Form -->
+                <form asp-action="UpdateCompilerSettings" method="post" class="mb-3">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="pythonPath" value="@ViewBag.SettingsPythonPath" />
+                    
+                    <label class="form-label fw-bold text-muted small">Cấu hình đường dẫn thủ công:</label>
+                    <div class="input-group">
+                        <input type="text" id="gppPathInput" name="gppPath" class="form-control font-monospace text-xs" 
+                               placeholder="Ví dụ: C:\mingw64\bin\g++.exe" value="@ViewBag.SettingsGppPath" />
+                        <button type="submit" class="btn btn-primary" title="Lưu đường dẫn này"><i class="fa-solid fa-floppy-disk"></i></button>
+                    </div>
+                    <small class="text-muted">Để trống để hệ thống tự động phát hiện.</small>
+                </form>
+
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-secondary" onclick="testPath('cpp', document.getElementById('gppPathInput').value)">
+                        <i class="fa-solid fa-square-poll-horizontal me-1"></i> Kiểm Tra Đường Dẫn Này
+                    </button>
+                    
+                    <div class="card bg-light p-3 border mt-2">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="useTempFolder_cpp" />
+                            <label class="form-check-label text-dark fw-bold small" for="useTempFolder_cpp">
+                                Cài đặt vào Thư mục Tạm hệ thống (Temp)
+                            </label>
+                        </div>
+                        <p class="text-muted small mb-2">Tích chọn nếu máy chủ chặn chạy file thực thi trong thư mục Website (runasp.net).</p>
+                        <button type="button" class="btn btn-warning text-dark font-weight-bold" onclick="startDownload('cpp')">
+                            <i class="fa-solid fa-circle-arrow-down me-1"></i> Tải & Cài Đặt Bản Di Động (~30MB)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Python Card -->
+    <div class="col-md-6 mb-4">
+        <div class="card-kids h-100">
+            <div class="card-header-kids d-flex justify-content-between align-items-center">
+                <h4 class="m-0 text-primary"><i class="fa-brands fa-python me-2"></i>Trình Thông Dịch Python</h4>
+                @if (ViewBag.PythonStatus == "Active")
+                {
+                    <span class="badge bg-success px-3 py-2 fs-7"><i class="fa-solid fa-circle-check me-1"></i> Đã Hoạt Động</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger px-3 py-2 fs-7"><i class="fa-solid fa-triangle-exclamation me-1"></i> Chưa Hoạt Động</span>
+                }
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-muted small uppercase">Đường dẫn thực thi hiện tại:</label>
+                    <div class="p-2 bg-light border rounded font-monospace text-break fs-7 text-secondary">
+                        @(string.IsNullOrEmpty(ViewBag.PythonPath) ? "Chưa cấu hình (Sử dụng mặc định 'python' trên hệ thống)" : ViewBag.PythonPath)
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-muted small uppercase">Thông tin kiểm tra phiên bản:</label>
+                    <pre class="bg-dark text-white p-3 rounded font-monospace fs-8 mb-0" style="max-height: 150px; overflow-y: auto;">@ViewBag.PythonVersion</pre>
+                </div>
+
+                <hr />
+
+                <!-- Manual Configuration Form -->
+                <form asp-action="UpdateCompilerSettings" method="post" class="mb-3">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="gppPath" value="@ViewBag.SettingsGppPath" />
+                    
+                    <label class="form-label fw-bold text-muted small">Cấu hình đường dẫn thủ công:</label>
+                    <div class="input-group">
+                        <input type="text" id="pythonPathInput" name="pythonPath" class="form-control font-monospace text-xs" 
+                               placeholder="Ví dụ: C:\Python310\python.exe" value="@ViewBag.SettingsPythonPath" />
+                        <button type="submit" class="btn btn-primary" title="Lưu đường dẫn này"><i class="fa-solid fa-floppy-disk"></i></button>
+                    </div>
+                    <small class="text-muted">Để trống để hệ thống tự động phát hiện.</small>
+                </form>
+
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-secondary" onclick="testPath('python', document.getElementById('pythonPathInput').value)">
+                        <i class="fa-solid fa-square-poll-horizontal me-1"></i> Kiểm Tra Đường Dẫn Này
+                    </button>
+                    
+                    <div class="card bg-light p-3 border mt-2">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="useTempFolder_python" />
+                            <label class="form-check-label text-dark fw-bold small" for="useTempFolder_python">
+                                Cài đặt vào Thư mục Tạm hệ thống (Temp)
+                            </label>
+                        </div>
+                        <p class="text-muted small mb-2">Tích chọn nếu máy chủ chặn chạy file thực thi trong thư mục Website (runasp.net).</p>
+                        <button type="button" class="btn btn-warning text-dark font-weight-bold" onclick="startDownload('python')">
+                            <i class="fa-solid fa-circle-arrow-down me-1"></i> Tải & Cài Đặt Bản Di Động (~10MB)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Live Installation Terminal Console -->
+<div id="terminalContainer" class="row d-none mb-4">
+    <div class="col-12">
+        <div class="card bg-dark text-white border-secondary">
+            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center py-2 px-3">
+                <span class="font-monospace fw-bold"><i class="fa-solid fa-terminal me-2"></i>Tiến trình cài đặt môi trường chấm bài</span>
+                <span id="terminalStatus" class="badge bg-warning text-dark">Đang chạy...</span>
+            </div>
+            <div class="card-body p-0">
+                <div id="terminalBody" class="p-3 font-monospace text-success fs-8 text-start" style="height: 300px; overflow-y: auto; background-color: #0c0f12; line-height: 1.5;">
+                    Đang khởi tạo tiến trình...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Test Results Modal -->
+<div class="modal fade" id="testResultModal" tabindex="-1" aria-labelledby="testResultModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="testResultModalLabel"><i class="fa-solid fa-square-poll-horizontal me-2"></i>Kết Quả Kiểm Tra Đường Dẫn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" onclick="closeTestModal()"></button>
+            </div>
+            <div class="modal-body">
+                <div id="testStatusAlert" class="alert d-flex align-items-center mb-3" role="alert">
+                    <!-- Icon and status will go here -->
+                </div>
+                <div class="mb-2 fw-bold text-muted small uppercase">Output từ trình biên dịch:</div>
+                <pre id="testOutputConsole" class="bg-dark text-white p-3 rounded font-monospace fs-8 mb-0" style="max-height: 250px; overflow-y: auto;"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeTestModal()">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let pollInterval = null;
+        let testModal = null;
+
+        function showTestModal() {
+            if (!testModal) {
+                testModal = new bootstrap.Modal(document.getElementById('testResultModal'), {
+                    backdrop: 'static',
+                    keyboard: false
+                });
+            }
+            testModal.show();
+        }
+
+        function closeTestModal() {
+            if (testModal) {
+                testModal.hide();
+            }
+        }
+
+        function testPath(type, path) {
+            showTestModal();
+            const alertDiv = document.getElementById('testStatusAlert');
+            const consolePre = document.getElementById('testOutputConsole');
+            
+            alertDiv.className = 'alert alert-info d-flex align-items-center mb-3';
+            alertDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2 fs-5"></i> <span>Đang khởi chạy tiến trình và kiểm tra...</span>';
+            consolePre.textContent = 'Đang chờ phản hồi từ máy chủ...';
+
+            const formData = new FormData();
+            formData.append('type', type);
+            formData.append('path', path);
+            
+            // Add antiforgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            formData.append('__RequestVerificationToken', token);
+
+            fetch('/Admin/TestCompilerPath', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alertDiv.className = 'alert alert-success d-flex align-items-center mb-3';
+                    alertDiv.innerHTML = '<i class="fa-solid fa-circle-check me-2 fs-5"></i> <span>Kết nối và thực thi thành công!</span>';
+                    consolePre.textContent = data.output;
+                } else {
+                    alertDiv.className = 'alert alert-danger d-flex align-items-center mb-3';
+                    alertDiv.innerHTML = '<i class="fa-solid fa-circle-xmark me-2 fs-5"></i> <span>Thất bại: Không thể thực thi file.</span>';
+                    consolePre.textContent = data.message;
+                }
+            })
+            .catch(err => {
+                alertDiv.className = 'alert alert-danger d-flex align-items-center mb-3';
+                alertDiv.innerHTML = '<i class="fa-solid fa-circle-xmark me-2 fs-5"></i> <span>Lỗi mạng: Không thể kết nối với máy chủ.</span>';
+                consolePre.textContent = err.toString();
+            });
+        }
+
+        function runDiagnostics() {
+            const container = document.getElementById('diagResultsContainer');
+            container.classList.remove('d-none');
+            
+            const body = document.getElementById('diagResultsBody');
+            body.innerHTML = '<tr><td colspan="3" class="text-center py-4"><i class="fa-solid fa-spinner fa-spin me-2 fs-5"></i> Đang chạy các bài kiểm tra bảo mật máy chủ...</td></tr>';
+            
+            const recAlert = document.getElementById('diagRecommendationAlert');
+            recAlert.className = 'd-none';
+
+            const formData = new FormData();
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            formData.append('__RequestVerificationToken', token);
+
+            fetch('/Admin/RunSystemDiagnostics', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(results => {
+                body.innerHTML = '';
+                let webRootBlocked = false;
+                let tempFolderAllowed = false;
+
+                results.forEach(item => {
+                    let badgeClass = 'bg-secondary';
+                    let statusText = item.status;
+                    let icon = '<i class="fa-solid fa-circle-question"></i>';
+
+                    if (item.status === 'Success') {
+                        badgeClass = 'bg-success';
+                        statusText = 'Thành công';
+                        icon = '<i class="fa-solid fa-circle-check text-success fs-5"></i>';
+                        if (item.name.includes('Temp')) tempFolderAllowed = true;
+                    } else if (item.status === 'Blocked') {
+                        badgeClass = 'bg-danger';
+                        statusText = 'Bị chặn';
+                        icon = '<i class="fa-solid fa-circle-xmark text-danger fs-5"></i>';
+                        if (item.name.includes('Web Root')) webRootBlocked = true;
+                    } else {
+                        badgeClass = 'bg-warning text-dark';
+                        statusText = 'Lỗi';
+                        icon = '<i class="fa-solid fa-circle-exclamation text-warning fs-5"></i>';
+                    }
+
+                    body.innerHTML += `
+                        <tr>
+                            <td><strong>${item.name}</strong></td>
+                            <td class="text-center"><span class="badge ${badgeClass}">${statusText}</span></td>
+                            <td><div class="d-flex align-items-center gap-2">${icon} <span>${item.detail}</span></div></td>
+                        </tr>
+                    `;
+                });
+
+                // Display Recommendations
+                recAlert.className = 'alert mt-3 d-block';
+                if (webRootBlocked && tempFolderAllowed) {
+                    recAlert.classList.add('alert-warning');
+                    recAlert.innerHTML = `
+                        <h5 class="alert-heading fw-bold"><i class="fa-solid fa-circle-exclamation me-2"></i>Phát hiện giới hạn bảo mật (Group Policy)</h5>
+                        <p class="mb-0">Máy chủ của bạn <strong>chặn chạy file thực thi trong thư mục Website</strong> nhưng <strong>cho phép chạy trong thư mục Temp hệ thống</strong>.</p>
+                        <hr>
+                        <p class="mb-0 fw-bold">👉 Khuyên dùng: Hãy tích chọn ô "Cài đặt vào Thư mục Tạm hệ thống" khi cài đặt C++ và Python di động bên dưới để chạy ổn định!</p>
+                    `;
+                    // Automatically toggle the checkboxes!
+                    document.getElementById('useTempFolder_cpp').checked = true;
+                    document.getElementById('useTempFolder_python').checked = true;
+                } else if (webRootBlocked && !tempFolderAllowed) {
+                    recAlert.classList.add('alert-danger');
+                    recAlert.innerHTML = `
+                        <h5 class="alert-heading fw-bold"><i class="fa-solid fa-skull-crossbones me-2"></i>Cảnh báo: Bảo mật máy chủ cực kỳ nghiêm ngặt</h5>
+                        <p class="mb-0">Máy chủ của bạn chặn thực thi file .exe ở cả thư mục Website và thư mục Temp.</p>
+                        <hr>
+                        <p class="mb-0 fw-bold">👉 Khuyên dùng: Bạn bắt buộc phải chuyển sang sử dụng máy chủ riêng ảo (VPS) để có toàn quyền điều khiển và cấu hình trình biên dịch chấm bài.</p>
+                    `;
+                } else {
+                    recAlert.classList.add('alert-success');
+                    recAlert.innerHTML = `
+                        <h5 class="alert-heading fw-bold"><i class="fa-solid fa-circle-check me-2"></i>Môi trường máy chủ lý tưởng!</h5>
+                        <p class="mb-0">Không phát hiện bất kỳ chính sách hạn chế thực thi file nào. Bạn có thể tự do cài đặt vào thư mục mặc định của website.</p>
+                    `;
+                }
+            })
+            .catch(err => {
+                body.innerHTML = `<tr><td colspan="3" class="text-center text-danger py-4"><i class="fa-solid fa-circle-xmark me-2"></i> Lỗi kết nối chẩn đoán: ${err.toString()}</td></tr>`;
+            });
+        }
+
+        function startDownload(type) {
+            const useTempCheckbox = document.getElementById(type === 'cpp' ? 'useTempFolder_cpp' : 'useTempFolder_python');
+            const useTemp = useTempCheckbox.checked;
+
+            const modeText = useTemp ? "thư mục Tạm hệ thống" : "thư mục Website";
+            if (!confirm(`Bạn có chắc chắn muốn tải và cài đặt trình biên dịch ${type.toUpperCase()} di động vào ${modeText}? Việc này có thể mất vài phút.`)) {
+                return;
+            }
+
+            // Show terminal
+            const container = document.getElementById('terminalContainer');
+            container.classList.remove('d-none');
+            
+            const terminalBody = document.getElementById('terminalBody');
+            const terminalStatus = document.getElementById('terminalStatus');
+            
+            terminalBody.textContent = 'Đang gửi yêu cầu cài đặt...\n';
+            terminalStatus.className = 'badge bg-warning text-dark';
+            terminalStatus.textContent = 'Đang chạy...';
+
+            // Scroll to terminal
+            container.scrollIntoView({ behavior: 'smooth' });
+
+            // Call download endpoint
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const formData = new FormData();
+            formData.append('type', type);
+            formData.append('useTempFolder', useTemp);
+            formData.append('__RequestVerificationToken', token);
+
+            fetch('/Admin/DownloadCompiler', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => {
+                if (res.ok) {
+                    // Start polling logs
+                    if (pollInterval) clearInterval(pollInterval);
+                    pollInterval = setInterval(() => pollLogs(type), 1000);
+                } else {
+                    terminalBody.textContent += '❌ Lỗi: Máy chủ phản hồi mã lỗi ' + res.status + '\n';
+                    terminalStatus.className = 'badge bg-danger';
+                    terminalStatus.textContent = 'Lỗi';
+                }
+            })
+            .catch(err => {
+                terminalBody.textContent += '❌ Lỗi kết nối: ' + err.toString() + '\n';
+                terminalStatus.className = 'badge bg-danger';
+                terminalStatus.textContent = 'Lỗi mạng';
+            });
+        }
+
+        function pollLogs(type) {
+            fetch(`/Admin/GetSetupLog?type=${type}`)
+            .then(res => res.json())
+            .then(data => {
+                const terminalBody = document.getElementById('terminalBody');
+                const terminalStatus = document.getElementById('terminalStatus');
+                
+                terminalBody.textContent = data.log;
+                terminalBody.scrollTop = terminalBody.scrollHeight; // Auto-scroll to bottom
+
+                if (data.status === 'success') {
+                    clearInterval(pollInterval);
+                    terminalStatus.className = 'badge bg-success';
+                    terminalStatus.textContent = 'Hoàn thành';
+                    terminalBody.textContent += '\n\n🎉 Cài đặt hoàn thành! Hệ thống sẽ tải lại trang sau 3 giây...\n';
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3000);
+                } else if (data.status === 'error') {
+                    clearInterval(pollInterval);
+                    terminalStatus.className = 'badge bg-danger';
+                    terminalStatus.textContent = 'Thất bại';
+                }
+            })
+            .catch(err => {
+                console.error("Error polling logs:", err);
+            });
+        }
+    </script>
+}

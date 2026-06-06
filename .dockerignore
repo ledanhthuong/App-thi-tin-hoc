@@ -1,0 +1,13 @@
+**/.git
+**/.github
+**/.vs
+**/.vscode
+**/bin
+**/obj
+**/Compiler
+**/TempSubmissions
+**/*.user
+**/*.db
+Dockerfile
+docker-compose.yml
+README_DOCKER.md

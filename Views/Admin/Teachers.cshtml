@@ -1,0 +1,161 @@
+@model List<App_thi_tin_hoc.Models.Account>
+@{
+    ViewData["Title"] = "Quản Lý Tài Khoản Giáo Viên";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="banner-kids p-4 mb-4" style="background: linear-gradient(135deg, hsl(350, 80%, 35%), hsl(350, 60%, 45%));">
+            <h1 class="text-white mb-2">Quản Lý Giáo Viên 🧑‍🏫</h1>
+            <p class="text-white-50">Xem danh sách, tìm kiếm, cấp quyền quản trị tối cao, sửa đổi thông tin hoặc xóa tài khoản của giáo viên tại đây.</p>
+            
+            <div class="d-flex flex-wrap gap-2 mt-3">
+                <a asp-action="Index" class="btn-kids btn-secondary-kids">
+                    <i class="fa-solid fa-arrow-left"></i> Quay lại Dashboard
+                </a>
+                <a asp-action="CreateTeacher" class="btn-kids btn-danger-kids">
+                    <i class="fa-solid fa-user-shield"></i> Thêm Giáo Viên Mới
+                </a>
+            </div>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-kids alert-success-kids alert-dismissible fade show" role="alert">
+                <i class="fa-solid fa-circle-check me-2"></i> @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <!-- Search and Filter Card -->
+        <div class="card-kids p-4 mb-4">
+            <form method="get" asp-action="Teachers" class="row align-items-center g-3">
+                <div class="col-md-9">
+                    <div class="form-kids">
+                        <label for="search" class="visually-hidden">Tìm kiếm giáo viên</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-3 border-end-0" style="border-radius: var(--border-radius-md) 0 0 var(--border-radius-md); border-color: hsl(220, 30%, 90%);">
+                                <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                            </span>
+                            <input type="text" id="search" name="search" class="form-control border-3 border-start-0" placeholder="Nhập tên đăng nhập hoặc họ và tên để tìm kiếm..." value="@ViewBag.SearchTerm" style="border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; border-color: hsl(220, 30%, 90%);" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn-kids btn-primary-kids w-100 m-0">
+                            <i class="fa-solid fa-filter"></i> Tìm Kiếm
+                        </button>
+                        @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                        {
+                            <a asp-action="Teachers" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center" style="border-radius: var(--border-radius-md); padding: 0 16px;">
+                                <i class="fa-solid fa-xmark"></i>
+                            </a>
+                        }
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Teacher List Card -->
+        <div class="card-kids p-4">
+            <h3 class="text-primary mt-0 mb-4"><i class="fa-solid fa-chalkboard-user"></i> Danh Sách Giáo Viên (@Model.Count)</h3>
+            
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <img src="/images/avatars/default.png" alt="Empty" style="width: 100px; opacity: 0.5; margin-bottom: 16px;" />
+                    <p class="text-muted fs-5">Không tìm thấy tài khoản giáo viên nào phù hợp!</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr class="table-light">
+                                <th style="width: 80px;">Ảnh đại diện</th>
+                                <th>Tên đăng nhập</th>
+                                <th>Họ và tên</th>
+                                <th>Quyền hạn</th>
+                                <th>Ngày tạo</th>
+                                <th style="width: 200px;" class="text-end">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var teacher in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <img src="@(string.IsNullOrEmpty(teacher.AvatarUrl) ? "/images/avatars/default.png" : teacher.AvatarUrl)" alt="Avatar" class="avatar-pill" style="width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--color-danger); padding: 2px; background: #fff;" />
+                                    </td>
+                                    <td><strong class="text-primary fs-5">@teacher.Username</strong></td>
+                                    <td><strong>@teacher.FullName</strong></td>
+                                    <td>
+                                        @if (teacher.IsSuperAdmin)
+                                        {
+                                            <span class="badge bg-danger text-white px-3 py-2 fw-bold" style="border-radius: 50px;">
+                                                <i class="fa-solid fa-shield-halved me-1"></i> Super Admin 🛡️
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary text-white px-3 py-2 fw-bold" style="border-radius: 50px;">
+                                                Giáo viên
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>@teacher.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        <div class="d-flex justify-content-end gap-1">
+                                            <a asp-action="EditStudent" asp-route-id="@teacher.Id" class="btn btn-sm btn-outline-primary" style="font-size: 0.9rem; border-radius: 8px;">
+                                                <i class="fa-solid fa-user-pen"></i> Sửa
+                                            </a>
+                                            <a href="javascript:void(0);" onclick="confirmDelete(@teacher.Id, '@teacher.Username')" class="btn btn-sm btn-outline-danger" style="font-size: 0.9rem; border-radius: 8px;">
+                                                <i class="fa-solid fa-trash-can"></i> Xóa
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: var(--border-radius-lg); border: 3px solid var(--color-danger); overflow: hidden;">
+            <div class="modal-header bg-danger text-white border-0 py-3">
+                <h5 class="modal-title fw-bold" id="deleteConfirmModalLabel"><i class="fa-solid fa-triangle-exclamation"></i> Cảnh Báo Xóa Tài Khoản!</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="fs-5 mb-2">Bạn có chắc chắn muốn xóa tài khoản giáo viên <strong id="deleteTeacherUsername" class="text-danger"></strong>?</p>
+                <div class="alert alert-warning-kids p-3 mb-0" style="background-color: hsl(45, 95%, 95%); border: 2px solid hsl(45, 95%, 85%); border-radius: var(--border-radius-md);">
+                    <i class="fa-solid fa-circle-exclamation text-warning me-2"></i>
+                    <strong>Chú ý:</strong> Hành động này sẽ xóa vĩnh viễn tài khoản giáo viên cùng lịch sử hoạt động liên quan! Không thể khôi phục lại.
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-3 bg-light d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: var(--border-radius-md); padding: 8px 20px;">Hủy bỏ</button>
+                <a id="deleteConfirmBtn" href="#" class="btn btn-danger" style="border-radius: var(--border-radius-md); padding: 8px 24px; font-weight: bold;">Đồng ý Xóa</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmDelete(id, username) {
+            document.getElementById('deleteTeacherUsername').textContent = username;
+            document.getElementById('deleteConfirmBtn').href = '/Admin/DeleteStudent/' + id;
+            var myModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+            myModal.show();
+        }
+    </script>
+}

@@ -1,0 +1,50 @@
+@{
+    ViewData["Title"] = "Đăng Nhập";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card-kids shadow-lg">
+            <div class="card-header-kids text-center">
+                <h2 class="mb-0"><i class="fa-solid fa-key text-primary"></i> Đăng Nhập</h2>
+            </div>
+            <div class="p-4">
+                <form asp-action="Login" method="post" class="form-kids">
+                    @Html.AntiForgeryToken()
+                    
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Tên đăng nhập</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white" style="border: 3px solid hsl(220, 30%, 90%); border-right: none; border-radius: var(--border-radius-md) 0 0 var(--border-radius-md);">
+                                <i class="fa-solid fa-user text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Nhập tên đăng nhập của em" required style="border-left: none;" />
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="password" class="form-label">Mật khẩu</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white" style="border: 3px solid hsl(220, 30%, 90%); border-right: none; border-radius: var(--border-radius-md) 0 0 var(--border-radius-md);">
+                                <i class="fa-solid fa-lock text-muted"></i>
+                            </span>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Nhập mật khẩu" required style="border-left: none;" />
+                        </div>
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn-kids btn-primary-kids wiggle-hover">
+                            Vào Học Thôi! <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+
+                    <div class="text-center">
+                        <p class="text-muted">Chưa có tài khoản? <a asp-action="Register" class="fw-bold text-primary">Đăng ký ngay tại đây!</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

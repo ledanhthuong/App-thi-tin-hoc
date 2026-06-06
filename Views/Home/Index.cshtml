@@ -1,0 +1,345 @@
+@using App_thi_tin_hoc.Models
+@{
+    ViewData["Title"] = "Trang Chủ";
+    var contests = ViewBag.Contests as List<Contest> ?? new List<Contest>();
+    var leaderboard = ViewBag.Leaderboard as List<Account> ?? new List<Account>();
+    var currentStudent = ViewBag.CurrentStudent as Account;
+    var schoolInfo = ViewBag.SchoolInfo as App_thi_tin_hoc.Controllers.HomeController.SchoolInfo ?? new App_thi_tin_hoc.Controllers.HomeController.SchoolInfo();
+    var isSuperAdmin = User.Identity?.IsAuthenticated == true && User.Identity.Name == "superadmin";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-kids alert-success-kids alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-kids alert-danger-kids alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-circle-xmark me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- School Introduction Row -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="school-card-container position-relative">
+            @if (isSuperAdmin)
+            {
+                <button class="btn btn-sm btn-success position-absolute" style="top: 16px; right: 16px; z-index: 10; border-radius: var(--border-radius-sm); font-family: var(--font-heading); font-weight: bold; box-shadow: var(--shadow-sm);" onclick="openEditSchoolModal()">
+                    <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa
+                </button>
+            }
+            <div class="row g-0 align-items-stretch">
+                <div class="col-md-5 p-0">
+                    <div class="school-image-wrapper">
+                        <img src="@schoolInfo.BannerUrl" alt="@schoolInfo.Title" />
+                        <span class="position-absolute badge bg-success text-white px-3 py-2 fw-bold" style="bottom: 16px; left: 16px; font-family: var(--font-heading); font-size: 0.85rem; border-radius: 50px; box-shadow: var(--shadow-sm); z-index: 2;">
+                            <i class="fa-solid fa-camera"></i> Hình ảnh thực tế
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-7 p-4 p-lg-5 d-flex flex-column justify-content-center">
+                    <div class="mb-2">
+                        <span class="badge px-3 py-1 fw-bold" style="background-color: hsl(145, 80%, 93%); color: hsl(145, 80%, 30%); font-size: 0.85rem; border-radius: 50px; text-transform: uppercase; letter-spacing: 1px;">
+                            🏫 Giới thiệu trường
+                        </span>
+                    </div>
+                    <h2 class="mt-0 mb-3" style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: 800; background: linear-gradient(135deg, hsl(145, 80%, 32%), hsl(165, 85%, 42%)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: flex; align-items: center; gap: 12px; line-height: 1.3;">
+                        @schoolInfo.Title
+                    </h2>
+                    <p class="mb-4 text-muted" style="font-family: var(--font-body); font-size: 1.12rem; line-height: 1.8; color: hsl(220, 15%, 35%) !important; text-align: justify; font-weight: 500;">
+                        @schoolInfo.Description
+                    </p>
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        @if (!string.IsNullOrEmpty(schoolInfo.Address))
+                        {
+                            <div class="d-inline-flex align-items-center gap-2 px-3 py-2" style="background: hsl(200, 95%, 98%); border: 1.5px solid hsl(200, 90%, 93%); color: hsl(200, 95%, 30%); border-radius: 12px; font-weight: 600; font-size: 0.95rem; box-shadow: 0 2px 4px rgba(0,0,0,0.01);">
+                                <i class="fa-solid fa-location-dot" style="font-size: 1.1rem; color: var(--color-secondary);"></i>
+                                <span>@schoolInfo.Address</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(schoolInfo.Hotline))
+                        {
+                            <div class="d-inline-flex align-items-center gap-2 px-3 py-2" style="background: hsl(25, 95%, 98%); border: 1.5px solid hsl(25, 90%, 93%); color: hsl(25, 95%, 35%); border-radius: 12px; font-weight: 600; font-size: 0.95rem; box-shadow: 0 2px 4px rgba(0,0,0,0.01);">
+                                <i class="fa-solid fa-phone" style="font-size: 1.1rem; color: var(--color-accent);"></i>
+                                <span>Hotline: <strong>@schoolInfo.Hotline</strong></span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Welcome Banner & Contest List -->
+    <div class="col-lg-8">
+        <div class="banner-kids">
+            <h1>Chào mừng bạn đến với CodeKids! 🎈</h1>
+            <p>Sân chơi giải các bài toán lập trình vui nhộn. Hãy tham gia thi đấu để tích lũy điểm và thăng hạng thành <strong>Dũng sĩ thuật toán</strong> nhé!</p>
+            @if (User.Identity?.IsAuthenticated != true)
+            {
+                <div class="mt-3">
+                    <a asp-action="Login" class="btn-kids btn-accent-kids wiggle-hover"><i class="fa-solid fa-play"></i> Bắt Đầu Ngay</a>
+                </div>
+            }
+        </div>
+
+        <h2 class="mb-4"><span style="font-size: 1.5rem;">🏆</span> Các Kỳ Thi Đang Diễn Ra</h2>
+        @if (!contests.Any())
+        {
+            <div class="card-kids p-4 text-center">
+                <p class="text-muted">Hiện tại chưa có kỳ thi nào diễn ra. Quay lại sau nhé!</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var contest in contests)
+            {
+                var isUpcoming = contest.StartTime > DateTime.UtcNow;
+                var isEnded = contest.EndTime < DateTime.UtcNow;
+                
+                <div class="card-kids">
+                    <div class="row g-0">
+                        <div class="col-md-9 p-4">
+                            <h3 class="card-title text-primary">@contest.Title</h3>
+                            <p class="text-muted">@contest.Description</p>
+                            <div class="d-flex flex-wrap gap-3 mt-3">
+                                <span class="title-tag title-tag-primary">
+                                    <i class="fa-solid fa-calendar-day"></i> Bắt đầu: @contest.StartTime.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                </span>
+                                <span class="title-tag title-tag-secondary">
+                                    <i class="fa-solid fa-clock"></i> Kết thúc: @contest.EndTime.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                </span>
+                                @if (isEnded)
+                                {
+                                    <span class="badge bg-secondary p-2 rounded-pill">Đã kết thúc</span>
+                                }
+                                else if (isUpcoming)
+                                {
+                                    <span class="badge bg-warning text-dark p-2 rounded-pill">Sắp diễn ra</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success p-2 rounded-pill">Đang mở</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-center justify-content-center p-4" style="background-color: hsl(252, 90%, 98%); border-left: 2px dashed hsl(252, 90%, 93%);">
+                            @if (isUpcoming)
+                            {
+                                <button class="btn-kids btn-secondary-kids disabled" disabled>Chờ thi đấu</button>
+                            }
+                            else
+                            {
+                                <a asp-controller="Contest" asp-action="Detail" asp-route-id="@contest.Id" class="btn-kids btn-primary-kids wiggle-hover">
+                                    Vào Thi Ngay <i class="fa-solid fa-arrow-right"></i>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Leaderboard Sidebar -->
+    <div class="col-lg-4">
+        <!-- Personal stats card if student -->
+        @if (currentStudent != null && currentStudent.Role == "Student")
+        {
+            <div class="card-kids p-4 mb-4 text-center" style="background: linear-gradient(135deg, hsl(45, 95%, 90%), hsl(25, 95%, 92%)); border-color: var(--color-accent);">
+                <img src="@currentStudent.AvatarUrl" alt="Avatar" class="rounded-circle border border-3 border-white mb-2 shadow-sm" style="width: 80px; height: 80px; object-fit: cover;" />
+                <h3 class="d-flex align-items-center justify-content-center gap-2">
+                    @currentStudent.FullName
+                    <a href="javascript:void(0);" onclick="openEditNameModal('@Html.Raw(currentStudent.FullName)', '@currentStudent.AvatarUrl')" class="text-secondary" style="font-size: 1.1rem;" title="Sửa thông tin hiển thị của bạn">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </a>
+                </h3>
+                <p class="badge bg-warning text-dark fs-6">@currentStudent.RankTitle</p>
+                <div class="d-flex justify-content-around mt-3">
+                    <div>
+                        <div class="fs-4 fw-bold text-primary">@currentStudent.Points</div>
+                        <small class="text-muted">Tổng Điểm</small>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="card-kids">
+            <div class="card-header-kids">
+                <h3 class="mb-0"><i class="fa-solid fa-ranking-star text-warning"></i> Bảng Anh Hùng</h3>
+            </div>
+            <div class="p-2">
+                @if (!leaderboard.Any())
+                {
+                    <p class="text-muted text-center p-4">Chưa có học sinh nào đạt điểm.</p>
+                }
+                else
+                {
+                    int rank = 1;
+                    @foreach (var student in leaderboard)
+                    {
+                        var rankClass = rank == 1 ? "rank-1" : rank == 2 ? "rank-2" : rank == 3 ? "rank-3" : "rank-other";
+                        <div class="leaderboard-row">
+                            <div class="me-3">
+                                <span class="rank-badge @rankClass">@rank</span>
+                            </div>
+                            <img src="@student.AvatarUrl" alt="Avatar" class="leaderboard-avatar me-3" />
+                            <div class="flex-grow-1">
+                                <h5 class="mb-0 fs-6">@student.FullName</h5>
+                                <small class="text-muted text-xs">@student.RankTitle</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-bold text-primary fs-5">@student.Points</span>
+                                <small class="text-muted d-block text-xs">điểm</small>
+                            </div>
+                        </div>
+                        rank++;
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Edit Name Modal -->
+<div class="modal fade" id="editNameModal" tabindex="-1" aria-labelledby="editNameModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: var(--border-radius-lg); border: 3px solid var(--color-primary); overflow: hidden;">
+            <div class="modal-header bg-primary text-white border-0 py-3">
+                <h5 class="modal-title fw-bold" id="editNameModalLabel"><i class="fa-solid fa-user-pen me-2"></i> Chỉnh Sửa Thông Tin Cá Nhân</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data" class="form-kids mb-0">
+                @Html.AntiForgeryToken()
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="fullNameInput">Họ và tên mới của bạn:</label>
+                        <input type="text" id="fullNameInput" name="fullName" class="form-control" placeholder="Nhập họ và tên mới..." required />
+                        <div class="form-text text-muted small mt-1">
+                            Hãy viết tên thật hoặc biệt danh thật đáng yêu của mình nhé!
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="d-block mb-2">Chọn ảnh đại diện có sẵn:</label>
+                        <div class="d-flex justify-content-center gap-3 py-2">
+                            <label class="avatar-select-label">
+                                <input type="radio" name="selectedAvatar" value="/images/avatars/avatar1.svg" class="d-none avatar-radio" id="avatar1Radio" />
+                                <img src="/images/avatars/avatar1.svg" class="avatar-img-preview border border-3 rounded-circle p-1" style="width: 60px; height: 60px; cursor: pointer; transition: all 0.2s;" />
+                            </label>
+                            <label class="avatar-select-label">
+                                <input type="radio" name="selectedAvatar" value="/images/avatars/avatar2.svg" class="d-none avatar-radio" id="avatar2Radio" />
+                                <img src="/images/avatars/avatar2.svg" class="avatar-img-preview border border-3 rounded-circle p-1" style="width: 60px; height: 60px; cursor: pointer; transition: all 0.2s;" />
+                            </label>
+                            <label class="avatar-select-label">
+                                <input type="radio" name="selectedAvatar" value="/images/avatars/avatar3.svg" class="d-none avatar-radio" id="avatar3Radio" />
+                                <img src="/images/avatars/avatar3.svg" class="avatar-img-preview border border-3 rounded-circle p-1" style="width: 60px; height: 60px; cursor: pointer; transition: all 0.2s;" />
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="avatarFile">Hoặc tải ảnh từ máy tính của bạn:</label>
+                        <input type="file" id="avatarFile" name="avatarFile" class="form-control" accept=".jpg,.jpeg,.png,.svg,.webp" />
+                        <div class="form-text text-muted small mt-1">
+                            Chấp nhận ảnh .jpg, .jpeg, .png, .svg.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-3 bg-light d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: var(--border-radius-md); padding: 8px 20px;">Hủy bỏ</button>
+                    <button type="submit" class="btn-kids btn-primary-kids m-0" style="padding: 8px 24px; font-weight: bold;">Lưu Thay Đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@if (isSuperAdmin)
+{
+    <!-- Edit School Modal -->
+    <div class="modal fade" id="editSchoolModal" tabindex="-1" aria-labelledby="editSchoolModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content" style="border-radius: var(--border-radius-lg); border: 3px solid var(--color-success); overflow: hidden;">
+                <div class="modal-header bg-success text-white border-0 py-3">
+                    <h5 class="modal-title fw-bold" id="editSchoolModalLabel"><i class="fa-solid fa-school-flag me-2"></i> Chỉnh Sửa Thông Tin Giới Thiệu Trường</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form asp-controller="Home" asp-action="UpdateSchoolInfo" method="post" enctype="multipart/form-data" class="form-kids mb-0">
+                    @Html.AntiForgeryToken()
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label for="schoolTitleInput" class="form-label fw-bold">Tiêu đề giới thiệu:</label>
+                            <input type="text" id="schoolTitleInput" name="title" class="form-control" value="@schoolInfo.Title" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="schoolDescInput" class="form-label fw-bold">Nội dung giới thiệu (đôi dòng về trường):</label>
+                            <textarea id="schoolDescInput" name="description" class="form-control" rows="5" required style="resize: vertical;">@schoolInfo.Description</textarea>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label for="schoolAddressInput" class="form-label fw-bold">Địa chỉ:</label>
+                                <input type="text" id="schoolAddressInput" name="address" class="form-control" value="@schoolInfo.Address" />
+                            </div>
+                            <div class="col-md-6">
+                                <label for="schoolHotlineInput" class="form-label fw-bold">Số điện thoại (Hotline):</label>
+                                <input type="text" id="schoolHotlineInput" name="hotline" class="form-control" value="@schoolInfo.Hotline" />
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="schoolBannerFile" class="form-label fw-bold">Ảnh Banner (Thay đổi hình giới thiệu):</label>
+                            <input type="file" id="schoolBannerFile" name="bannerFile" class="form-control" accept=".jpg,.jpeg,.png,.svg,.webp" />
+                            <div class="form-text text-muted small mt-1">
+                                Nếu không tải lên hình mới, ảnh banner hiện tại sẽ được giữ nguyên.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-3 bg-light d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: var(--border-radius-md); padding: 8px 20px;">Hủy bỏ</button>
+                        <button type="submit" class="btn-kids btn-success-kids m-0" style="padding: 8px 24px; font-weight: bold;">Lưu Thông Tin</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        function openEditNameModal(currentName, currentAvatar) {
+            document.getElementById('fullNameInput').value = currentName;
+            
+            // Reset default avatar selections
+            document.querySelectorAll('.avatar-radio').forEach(r => r.checked = false);
+            document.getElementById('avatarFile').value = '';
+            
+            if (currentAvatar === '/images/avatars/avatar1.svg') {
+                document.getElementById('avatar1Radio').checked = true;
+            } else if (currentAvatar === '/images/avatars/avatar2.svg') {
+                document.getElementById('avatar2Radio').checked = true;
+            } else if (currentAvatar === '/images/avatars/avatar3.svg') {
+                document.getElementById('avatar3Radio').checked = true;
+            }
+            
+            var myModal = new bootstrap.Modal(document.getElementById('editNameModal'));
+            myModal.show();
+        }
+
+        function openEditSchoolModal() {
+            var myModal = new bootstrap.Modal(document.getElementById('editSchoolModal'));
+            myModal.show();
+        }
+    </script>
+}
