@@ -186,6 +186,15 @@ a:hover {
     background-color: hsl(45, 95%, 48%);
     color: var(--text-main);
 }
+.btn-success-kids {
+    background-color: var(--color-success);
+    color: var(--text-white);
+    box-shadow: 0 4px 0px 0px hsl(145, 80%, 30%);
+}
+.btn-success-kids:hover {
+    background-color: hsl(145, 80%, 35%);
+    color: var(--text-white);
+}
 
 /* Cards */
 .card-kids {
