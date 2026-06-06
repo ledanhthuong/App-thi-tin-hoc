@@ -31,12 +31,45 @@ namespace App_thi_tin_hoc.Controllers
                 .OrderByDescending(c => c.StartTime)
                 .ToListAsync();
 
-            // Fetch top 10 students for leaderboard
-            var leaderboard = await _context.Accounts
+            // Fetch all students
+            var students = await _context.Accounts
                 .Where(a => a.Role == "Student")
-                .OrderByDescending(a => a.Points)
-                .Take(10)
                 .ToListAsync();
+
+            // Calculate active session points for each student.
+            // Active session score is the sum of best scores of the student's submissions 
+            // in the current active session of each contest.
+            var activeSubmissions = await _context.Submissions
+                .Include(s => s.Contest)
+                .Where(s => s.Contest != null && s.SessionGroup == s.Contest.CurrentSession)
+                .GroupBy(s => new { s.AccountId, s.ProblemId })
+                .Select(g => new
+                {
+                    AccountId = g.Key.AccountId,
+                    ProblemId = g.Key.ProblemId,
+                    MaxScore = g.Max(s => s.Score)
+                })
+                .ToListAsync();
+
+            var activeScores = activeSubmissions
+                .GroupBy(s => s.AccountId)
+                .ToDictionary(g => g.Key, g => g.Sum(s => s.MaxScore));
+
+            // Sort students by their active session score first, then by global points
+            var leaderboard = students
+                .Select(s => new {
+                    Account = s,
+                    ActiveScore = activeScores.TryGetValue(s.Id, out int score) ? score : 0
+                })
+                .OrderByDescending(x => x.ActiveScore)
+                .ThenByDescending(x => x.Account.Points)
+                .Take(10)
+                .Select(x => {
+                    // Temporarily set Points to ActiveScore for home page display
+                    x.Account.Points = x.ActiveScore;
+                    return x.Account;
+                })
+                .ToList();
 
             ViewBag.Contests = contests;
             ViewBag.Leaderboard = leaderboard;
@@ -48,7 +81,12 @@ namespace App_thi_tin_hoc.Controllers
                 if (int.TryParse(userIdStr, out int userId))
                 {
                     var student = await _context.Accounts.FindAsync(userId);
-                    ViewBag.CurrentStudent = student;
+                    if (student != null)
+                    {
+                        int activeScore = activeScores.TryGetValue(student.Id, out int score) ? score : 0;
+                        student.Points = activeScore;
+                        ViewBag.CurrentStudent = student;
+                    }
                 }
             }
 
